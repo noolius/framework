@@ -1,1 +1,166 @@
-../playbook-alpine-salt.yml
+---
+  - name: Provisioning Alpine 3.14 K8s (control-planes)
+    hosts: control_planes
+    become: yes
+    tasks:
+      - name: Downloading Helm cli
+        get_url:
+          url: https://get.helm.sh/helm-v3.6.3-linux-amd64.tar.gz
+          dest: /root/helm-v3.6.3-linux-amd64.tar.gz
+          checksum: sha256:07c100849925623dc1913209cd1a30f0a9b80a5b4d6ff2153c609d11b043e262
+      - name: Downloading kapp
+        get_url:
+          url: https://github.com/vmware-tanzu/carvel-kapp/releases/download/v0.37.0/kapp-linux-amd64
+          dest: /root/kapp-linux-amd64
+          checksum: sha256:f845233deb6c87feac7c82d9b3f5e03ced9a4672abb1a14d4e5b74fe53bc4538
+      - name: Extracting Helm cli
+        unarchive:
+          src: /root/helm-v3.6.3-linux-amd64.tar.gz
+          dest: /root
+          remote_src: yes
+          extra_opts:
+          - linux-amd64/helm
+      - name: Installing Helm cli
+        copy:
+          src: /root/linux-amd64/helm
+          dest: /usr/local/bin/helm
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: yes
+      - name: Installing Cilium cli
+        unarchive:
+          src: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
+          dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: yes
+      - name: Installing kapp
+        copy:
+          src: /root/kapp-linux-amd64
+          dest: /usr/local/bin/kapp
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: yes
+      - name: Installing cf cli
+        unarchive:
+          src: https://s3-us-west-1.amazonaws.com/v7-cf-cli-releases/releases/v7.2.0/cf7-cli_7.2.0_linux_x86-64.tgz
+          dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: yes
+          extra_opts:
+          - cf7
+          - cf
+  - name: Provisioning Alpine 3.14 K8s (all)
+    hosts: "*"
+    become: yes
+    vars:
+      more_modules: |
+        overlay
+        br_netfilter
+        wireguard
+      sysctl_tunables: |
+        net.ipv4.ip_forward = 1
+        net.bridge.bridge-nf-call-iptables = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.netfilter.nf_conntrack_max = 1000000
+      repo_contents: |
+        https://sjc.edge.kernel.org/alpine/v3.14/main
+        https://sjc.edge.kernel.org/alpine/v3.14/community
+        https://sjc.edge.kernel.org/alpine/edge/main
+        https://sjc.edge.kernel.org/alpine/edge/community
+        https://sjc.edge.kernel.org/alpine/edge/testing
+      mount_rshared_openrc: |
+        #!/sbin/openrc-run
+        name="mount_rshared"
+        command="/bin/mount"
+        command_args="--make-rshared /"
+        depend() {
+          before kubelet
+        }
+    tasks:
+      - name: Configuring additional kernel modules to load
+        copy:
+          content: "{{ more_modules }}"
+          dest: /etc/modules-load.d/K8s.conf
+          mode: '0444'
+      - name: Configuring sysctl tunables
+        copy:
+          content: "{{ sysctl_tunables }}"
+          dest: /etc/sysctl.d/K8s_v2.conf
+          mode: '0444'
+      - name: Replacing /e/apk/repositories to include edge/*
+        copy:
+          content: "{{ repo_contents }}"
+          dest: /etc/apk/repositories
+          owner: root
+          group: root
+          mode: '0444'
+          backup: yes
+      - name: Updating distro packages to their latest versions
+        community.general.apk:
+          update_cache: yes
+          upgrade: yes
+      - name: Adding cluster packages
+        community.general.apk:
+          name:
+            - wireguard-tools
+            - salt-minion
+            - containerd-openrc
+            - conntrack-tools
+            - socat
+            - jq
+            - kubelet
+            - kubeadm
+            - kubectl
+            - cri-tools
+            - ytt
+            - virtualbox-guest-additions-openrc
+          state: latest
+      - name: Checking whether to configure salt-minion
+        ansible.builtin.command: test -f /vagrant/no_salt
+        register: test_contents
+      - name: Getting fingerprint of salt server
+        ansible.builtin.command: cat pub_fingerprint
+        register: fingerprint
+        when: test_contents.rc == 1
+      - name: Creating /e/salt/minion.d
+        file:
+          path: /etc/salt/minion.d
+          state: directory
+          owner: root
+          group: root
+          mode: '0750'
+        when: test_contents.rc == 1
+      - name: Seeding salt-master IPv4
+        copy:
+          content: "master: '{{ ansible_default_ipv4.gateway }}'"
+          dest: /etc/salt/minion.d/master.conf
+        when: test_contents.rc == 1
+      - name: Seeding salt-master key
+        copy:
+          content: "master_finger: '{{ fingerprint.stdout }}'"
+          dest: /etc/salt/minion.d/master_finger.conf
+        when: test_contents.rc == 1
+      - name: Creating OpenRC script to mount --make-rshared /
+        copy:
+          content: "{{ mount_rshared_openrc }}"
+          dest: /etc/init.d/mount_rshared
+          owner: root
+          group: root
+          mode: '0550'
+      - name: Enabling salt-minion service
+        ansible.builtin.command: /sbin/rc-update -q add salt-minion default
+        when: test_contents.rc == 1
+      - name: Enabling kubelet service
+        ansible.builtin.command: /sbin/rc-update -q add kubelet default
+      - name: Enabling containerd service
+        ansible.builtin.command: /sbin/rc-update -q add containerd default
+      - name: Enabling service to mount --make-rshared /
+        ansible.builtin.command: /sbin/rc-update -q add mount_rshared default
+      - name: Enabling virtualbox-guest-additions service
+        ansible.builtin.command: /sbin/rc-update -q add virtualbox-guest-additions default
