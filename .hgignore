@@ -1,0 +1,14 @@
+calico
+cf
+cilium
+helm
+kapp
+kubecf
+linux-amd64
+text
+no_salt
+pub_fingerprint
+.vagrant
+package
+node
+vagrant_loc
