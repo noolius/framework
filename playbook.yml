@@ -154,13 +154,23 @@
           group: root
           mode: '0550'
       - name: Enabling salt-minion service
-        ansible.builtin.command: /sbin/rc-update -q add salt-minion default
+        service:
+          name: salt-minion
+          enabled: yes
         when: test_contents.rc == 1
       - name: Enabling kubelet service
-        ansible.builtin.command: /sbin/rc-update -q add kubelet default
+        service:
+          name: kubelet
+          enabled: yes
       - name: Enabling containerd service
-        ansible.builtin.command: /sbin/rc-update -q add containerd default
+        service:
+          name: containerd
+          enabled: yes
       - name: Enabling service to mount --make-rshared /
-        ansible.builtin.command: /sbin/rc-update -q add mount_rshared default
+        service:
+          name: mount_rshared
+          enabled: yes
       - name: Enabling virtualbox-guest-additions service
-        ansible.builtin.command: /sbin/rc-update -q add virtualbox-guest-additions default
+        service:
+          name: virtualbox-guest-additions
+          enabled: yes
