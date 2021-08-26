@@ -18,8 +18,8 @@ Bash scripts and Ansible playbooks to proof-of-concept local, three-node Alpine 
 
 ## Host requirements
 
-- 6+ virtual CPU cores
-- 8+ GiB RAM
+- 8+ virtual CPU cores
+- 16+ GiB RAM
 - 25+ GiB disk
 - systemd-based
 - VirtualBox 6.1+ with Guest Additions (for shared folders and nested virtualization on AMD **or** Intel)
@@ -58,6 +58,8 @@ versus
 ## Caveats
 
 The URLs in the playbooks may break (and using URLs with unarchive is likely poor form).
+
+Cilium currently isn't used in the latest commits.
 
 ## License
 
