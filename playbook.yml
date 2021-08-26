@@ -1,8 +1,22 @@
 ---
   - name: Provisioning Alpine 3.14 K8s (control-planes)
     hosts: control_planes
-    become: yes
+    become: true
     tasks:
+      - name: Downloading flannel manifest
+        get_url:
+          url: https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+          dest: /root/kube-flannel.yml
+      - name: Modifying flannel manifest to use internal (to-VMs) LAN
+        lineinfile:
+          path: /root/kube-flannel.yml
+          insertafter: '--kube-subnet-mgr$'
+          line: '        - --iface=eth1'
+      - name: Downloading Cilium-istioctl
+        get_url:
+          url: https://github.com/cilium/istio/releases/download/1.10.3/cilium-istioctl-1.10.3-linux-amd64.tar.gz
+          dest: /root/cilium-istioctl-1.10.3-linux-amd64.tar.gz
+          checksum: sha256:8b4847a781a175597daed5df7fc12810dbbc2546c6f44214ba92ef0b87a7239f
       - name: Downloading Helm cli
         get_url:
           url: https://get.helm.sh/helm-v3.6.3-linux-amd64.tar.gz
@@ -17,7 +31,7 @@
         unarchive:
           src: /root/helm-v3.6.3-linux-amd64.tar.gz
           dest: /root
-          remote_src: yes
+          remote_src: true
           extra_opts:
           - linux-amd64/helm
       - name: Installing Helm cli
@@ -27,7 +41,7 @@
           owner: root
           group: root
           mode: '0555'
-          remote_src: yes
+          remote_src: true
       - name: Installing Cilium cli
         unarchive:
           src: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
@@ -35,7 +49,15 @@
           owner: root
           group: root
           mode: '0555'
-          remote_src: yes
+          remote_src: true
+      - name: Installing Cilium-istioctl
+        unarchive:
+          src: /root/cilium-istioctl-1.10.3-linux-amd64.tar.gz
+          dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
       - name: Installing kapp
         copy:
           src: /root/kapp-linux-amd64
@@ -43,7 +65,7 @@
           owner: root
           group: root
           mode: '0555'
-          remote_src: yes
+          remote_src: true
       - name: Installing cf cli
         unarchive:
           src: https://s3-us-west-1.amazonaws.com/v7-cf-cli-releases/releases/v7.2.0/cf7-cli_7.2.0_linux_x86-64.tgz
@@ -51,13 +73,13 @@
           owner: root
           group: root
           mode: '0555'
-          remote_src: yes
+          remote_src: true
           extra_opts:
           - cf7
           - cf
   - name: Provisioning Alpine 3.14 K8s (all)
     hosts: "*"
-    become: yes
+    become: true
     vars:
       more_modules: |
         overlay
@@ -83,6 +105,9 @@
           before kubelet
         }
     tasks:
+      - name: Checking for existence of flannel binary
+        wait_for:
+          path: /vagrant/flannel
       - name: Configuring additional kernel modules to load
         copy:
           content: "{{ more_modules }}"
@@ -100,52 +125,65 @@
           owner: root
           group: root
           mode: '0444'
-          backup: yes
-      - name: Updating distro packages to their latest versions
+          backup: true
+      - name: Upgrading distro packages to their latest versions
         community.general.apk:
-          update_cache: yes
-          upgrade: yes
+          update_cache: true
+          upgrade: true
+        register: upgrading
+        failed_when: "'timed out' in upgrading.stderr"
+      - name: Re-attempting packages upgrade
+        community.general.apk:
+          upgrade: true
+        when: upgrading is not succeeded
       - name: Adding cluster packages
         community.general.apk:
           name:
             - wireguard-tools
             - salt-minion
+            - containerd
             - containerd-openrc
+            - cni-plugins
             - conntrack-tools
             - socat
             - jq
             - kubelet
             - kubeadm
-            - kubectl
             - cri-tools
-            - ytt
             - virtualbox-guest-additions-openrc
           state: latest
       - name: Checking whether to configure salt-minion
-        ansible.builtin.command: test -f /vagrant/no_salt
+        ansible.builtin.stat:
+          path: /vagrant/no_salt
         register: test_contents
       - name: Getting fingerprint of salt server
         ansible.builtin.command: cat pub_fingerprint
         register: fingerprint
-        when: test_contents.rc == 1
+        when: not test_contents.stat.exists
       - name: Creating /e/salt/minion.d
         file:
           path: /etc/salt/minion.d
           state: directory
           owner: root
-          group: root
+          group: salt
           mode: '0750'
-        when: test_contents.rc == 1
+        when: not test_contents.stat.exists
       - name: Seeding salt-master IPv4
         copy:
           content: "master: '{{ ansible_default_ipv4.gateway }}'"
           dest: /etc/salt/minion.d/master.conf
-        when: test_contents.rc == 1
+          owner: root
+          group: salt
+          mode: '0440'
+        when: not test_contents.stat.exists
       - name: Seeding salt-master key
         copy:
           content: "master_finger: '{{ fingerprint.stdout }}'"
           dest: /etc/salt/minion.d/master_finger.conf
-        when: test_contents.rc == 1
+          owner: root
+          group: salt
+          mode: '0440'
+        when: not test_contents.stat.exists
       - name: Creating OpenRC script to mount --make-rshared /
         copy:
           content: "{{ mount_rshared_openrc }}"
@@ -156,21 +194,31 @@
       - name: Enabling salt-minion service
         service:
           name: salt-minion
-          enabled: yes
-        when: test_contents.rc == 1
+          enabled: true
+        when: not test_contents.stat.exists
       - name: Enabling kubelet service
         service:
           name: kubelet
-          enabled: yes
+          enabled: true
       - name: Enabling containerd service
         service:
           name: containerd
-          enabled: yes
+          enabled: true
       - name: Enabling service to mount --make-rshared /
         service:
           name: mount_rshared
-          enabled: yes
+          enabled: true
       - name: Enabling virtualbox-guest-additions service
         service:
           name: virtualbox-guest-additions
-          enabled: yes
+          enabled: true
+  - name: Provisioning Alpine 3.14 K8s (control-planes...more)
+    hosts: control_planes
+    become: true
+    tasks:
+      - name: Adding cluster packages specific to control-planes
+        community.general.apk:
+          name:
+            - kubectl
+            - ytt
+          state: latest

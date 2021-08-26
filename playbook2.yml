@@ -1,7 +1,7 @@
 ---
   - name: Provisioning Alpine 3.14 K8s (all, post-first reboot)
     hosts: "*"
-    become: yes
+    become: true
     tasks:
       - name: Adding node IP to /e/hosts
         blockinfile:
@@ -12,11 +12,9 @@
           state: absent
           regexp: '^127\.0\.1\.1'
           path: /etc/hosts
-      - name: Getting images corresponding to kubeadm version
-        ansible.builtin.command: /usr/bin/kubeadm config images pull
   - name: Provisioning Alpine 3.14 K8s (control-planes, post-first reboot)
     hosts: control_planes
-    become: yes
+    become: true
     vars:
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
@@ -36,9 +34,12 @@
           group: vagrant
           mode: '0750'
       - name: Creating K8s manifests with api-server on internal (to-VMs) LAN
-        ansible.builtin.shell: nohup /usr/bin/kubeadm init --apiserver-advertise-address={{ apiserver | quote }} --skip-phases=addon/kube-proxy </dev/null >/vagrant/text 2>&1 &
+        ansible.builtin.shell: >
+          nohup /usr/bin/kubeadm init --apiserver-advertise-address={{ apiserver | quote }}
+          --pod-network-cidr=10.188.0.0/16 --cri-socket=/run/containerd/containerd.sock </dev/null >/vagrant/text 2>&1 &
         args:
           executable: /bin/bash
+          warn: false
       - name: Waiting for /v/lib/kubelet/kubeadm-flags.env
         wait_for:
           path: /var/lib/kubelet/kubeadm-flags.env
@@ -46,10 +47,30 @@
       - name: Replacing KUBELET_EXTRA_ARGS
         # openrc service file in Alpine Linux uses KUBELET_KUBEADM_ARGS; also needs cgroupfs
         lineinfile:
-          line: 'KUBELET_KUBEADM_ARGS="--node-ip {{ ansible_eth1.ipv4.address | quote }} --container-runtime remote --container-runtime-endpoint=/run/containerd/containerd.sock --cgroup-driver=cgroupfs --pod-infra-container-image=k8s.gcr.io/pause:3.5"'
+          line: >
+            KUBELET_KUBEADM_ARGS="--node-ip {{ ansible_eth1.ipv4.address | quote }} --container-runtime remote
+            --container-runtime-endpoint=/run/containerd/containerd.sock --cgroup-driver=cgroupfs
+            --pod-infra-container-image=k8s.gcr.io/pause:3.5"
           regexp: '^KUBELET_KUBEADM_ARGS='
           path: /var/lib/kubelet/kubeadm-flags.env
-          backup: yes
+          backup: true
+      - name: Creating /opt/cni/
+        file:
+          path: /opt/cni
+          state: directory
+          mode: '0755'
+      - name: Creating /opt/cni/bin symlink for kubelet
+        file:
+          src: /usr/libexec/cni
+          state: link
+          dest: /opt/cni/bin
+      - name: Copying flannel binary
+        # https://github.com/containernetworking/plugins/issues/655
+        copy:
+          src: /vagrant/flannel
+          dest: /opt/cni/bin/flannel
+          remote_src: true
+          mode: '0555'
       - name: Restarting kubelet
         service:
           name: kubelet
@@ -64,7 +85,7 @@
           owner: root
           group: root
           mode: '0400'
-          remote_src: yes
+          remote_src: true
       - name: Copying KUBECONFIG for vagrant user
         copy:
           src: /etc/kubernetes/admin.conf
@@ -72,22 +93,52 @@
           owner: vagrant
           group: vagrant
           mode: '0400'
-          remote_src: yes
+          remote_src: true
       - name: Adding Cilium's Helm charts
-        ansible.builtin.shell: KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/helm repo add cilium https://helm.cilium.io/
+        ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
+        register: add_helm_chart
+        when: add_helm_chart is not succeeded
       - name: Updating Helm repos
-        ansible.builtin.shell: KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/helm repo update
-      - name: Waiting for api-server (delaying 10s)
+        ansible.builtin.command: /usr/local/bin/helm repo update
+        register: update_helm_repos
+        when: update_helm_repos is not succeeded
+      - name: Waiting for api-server to become available (grace 70s)
         wait_for:
           port: '{{ k8s_serviceport | quote }}'
-        delay: 10
-      - name: Installing Cilium using its Helm chart
-        ansible.builtin.shell: KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/helm install cilium cilium/cilium --version 1.10.3 --namespace kube-system --set kubeProxyReplacement=strict --set k8sServiceHost={{ apiserver | quote }} --set k8sServicePort={{ k8s_serviceport | quote }} --set l7Proxy=false --set encryption.enabled=true --set encryption.type=wireguard
+        delay: 70
+      - name: Deploying modified flannel manifest (racy!)
+        ansible.builtin.command: /usr/bin/kubectl apply -f /root/kube-flannel.yml
+        register: deploy_flannel
+        ignore_errors: true
+      - name: Redeploying modified flannel manifest due to missing kinds in ClusterRole*/PodSecurityPolicy
+        ansible.builtin.shell: /usr/bin/kubectl delete -f /root/kube-flannel.yml ; /usr/bin/kubectl apply -f /root/kube-flannel.yml
         args:
-          executable: /bin/bash
+          warn: false
+        when: "'no matches for kind' in deploy_flannel.stderr"
+#      - name: Deploying Cilium using its Helm chart
+#        ansible.builtin.command: >
+#          /usr/local/bin/helm install cilium cilium/cilium --version 1.10.3 --namespace kube-system
+#          --set k8sServiceHost={{ apiserver | quote }} --set k8sServicePort={{ k8s_serviceport | quote }}
+#        ansible.builtin.command: >
+#          /usr/local/bin/helm install cilium cilium/cilium --version 1.10.3 --namespace kube-system --set kubeProxyReplacement=strict
+#          --set k8sServiceHost={{ apiserver | quote }} --set k8sServicePort={{ k8s_serviceport | quote }} --set l7Proxy=false
+#          --set encryption.enabled=true --set encryption.type=wireguard
+#      - name: Waiting for Cilium deployment to settle (grace 3m)
+#        pause:
+#          minutes: 3
+#      - name: Restarting unmanaged pods
+#        ansible.builtin.shell: >
+#          /usr/bin/kubectl get po --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTNETWORK:.spec.hostNetwork
+#          --no-headers=true | awk '/<none>/ {print "-n "$1" "$2}' | xargs -L 1 -r /usr/bin/kubectl delete po
+#        args:
+#          warn: false
+#      - name: Deploying Istio using Cilium-istioctl
+#        ansible.builtin.command: /usr/local/bin/cilium-istioctl install -y
+#      - name: Instructing Istio to inject Envoy sidecar proxies
+#        ansible.builtin.command: /usr/bin/kubectl label namespace default istio-injection=enabled
   - name: Provisioning Alpine 3.14 K8s (workers, post-first reboot)
     hosts: workers
-    become: yes
+    become: true
     vars:
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
@@ -96,31 +147,55 @@
         wait_for:
           path: /vagrant/text
           search_regex: 'sha256'
+        register: got_token_and_hash
       - name: Setting node registration token
-        ansible.builtin.shell: awk '/^kubeadm/ {print $5}' /vagrant/text
-        args:
-          executable: /bin/bash
+        ansible.builtin.command: awk '/^kubeadm/ {print $5}' /vagrant/text
+        when: got_token_and_hash is succeeded
         register: token
-      - set_fact:
-          token={{ token.stdout }}
       - name: Setting node registration hash
-        ansible.builtin.shell: "awk -F: '/sha256/ {gsub(/ /, \"\", $0);print $2}' /vagrant/text"
-        args:
-          executable: /bin/bash
+        ansible.builtin.command: "awk -F: '/sha256/ {gsub(/ /, \"\", $0);print $2}' /vagrant/text"
+        when: got_token_and_hash is succeeded
         register: ca_cert_hash
-      - set_fact:
-          ca_cert_hash={{ ca_cert_hash.stdout }}
       - name: Joining node to cluster
-        ansible.builtin.shell: '/usr/bin/kubeadm join --token {{ token | quote }} {{ apiserver | quote }}:{{ k8s_serviceport | quote }} --discovery-token-ca-cert-hash sha256:{{ ca_cert_hash | quote }}'
-        args:
-          executable: /bin/bash
+        ansible.builtin.command: >
+          /usr/bin/kubeadm join --token {{ token.stdout | quote }} {{ apiserver | quote }}:{{ k8s_serviceport | quote }}
+          --discovery-token-ca-cert-hash sha256:{{ ca_cert_hash.stdout | quote }} --cri-socket=/run/containerd/containerd.sock
+        when: got_token_and_hash is succeeded
       - name: Replacing KUBELET_EXTRA_ARGS
         # openrc service file in Alpine Linux uses KUBELET_KUBEADM_ARGS; also needs cgroupfs
         lineinfile:
-          line: 'KUBELET_KUBEADM_ARGS="--node-ip {{ ansible_eth1.ipv4.address | quote }} --container-runtime remote --container-runtime-endpoint=/run/containerd/containerd.sock --cgroup-driver=cgroupfs --pod-infra-container-image=k8s.gcr.io/pause:3.5"'
+          line: >
+            KUBELET_KUBEADM_ARGS="--node-ip {{ ansible_eth1.ipv4.address | quote }} --container-runtime remote
+            --container-runtime-endpoint=/run/containerd/containerd.sock --cgroup-driver=cgroupfs
+            --pod-infra-container-image=k8s.gcr.io/pause:3.5"
           regexp: '^KUBELET_KUBEADM_ARGS='
           path: /var/lib/kubelet/kubeadm-flags.env
-          backup: yes
+          backup: true
+        when: got_token_and_hash is succeeded
+      - name: Creating /opt/cni/
+        file:
+          path: /opt/cni
+          state: directory
+          mode: '0755'
+      - name: Creating /opt/cni/bin symlink for kubelet
+        file:
+          src: /usr/libexec/cni
+          state: link
+          dest: /opt/cni/bin
+      - name: Copying flannel binary
+        # https://github.com/containernetworking/plugins/issues/655
+        copy:
+          src: /vagrant/flannel
+          dest: /opt/cni/bin/flannel
+          remote_src: true
+          mode: '0555'
+      - name: Silencing spurious kubelet log spam for (missing) /e/kubernetes/manifests/
+        file:
+          state: directory
+          path: /etc/kubernetes/manifests
+          owner: root
+          group: root
+          mode: '0700'
       - name: Restarting kubelet
         service:
           name: kubelet
