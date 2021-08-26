@@ -96,12 +96,8 @@
           remote_src: true
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
-        register: add_helm_chart
-        when: add_helm_chart is not succeeded
       - name: Updating Helm repos
         ansible.builtin.command: /usr/local/bin/helm repo update
-        register: update_helm_repos
-        when: update_helm_repos is not succeeded
       - name: Waiting for api-server to become available (grace 70s)
         wait_for:
           port: '{{ k8s_serviceport | quote }}'
