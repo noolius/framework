@@ -98,10 +98,9 @@
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
       - name: Updating Helm repos
         ansible.builtin.command: /usr/local/bin/helm repo update
-      - name: Waiting for api-server to become available (grace 70s)
+      - name: Waiting for api-server to become available
         wait_for:
           port: '{{ k8s_serviceport | quote }}'
-        delay: 70
       - name: Deploying modified flannel manifest (racy!)
         ansible.builtin.command: /usr/bin/kubectl apply -f /root/kube-flannel.yml
         register: deploy_flannel
