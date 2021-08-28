@@ -3,20 +3,6 @@
     hosts: control_planes
     become: true
     tasks:
-      - name: Downloading flannel manifest
-        get_url:
-          url: https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-          dest: /root/kube-flannel.yml
-      - name: Modifying flannel manifest to use internal (to-VMs) LAN
-        lineinfile:
-          path: /root/kube-flannel.yml
-          insertafter: '--kube-subnet-mgr$'
-          line: '        - --iface=eth1'
-      - name: Downloading Cilium-istioctl
-        get_url:
-          url: https://github.com/cilium/istio/releases/download/1.10.3/cilium-istioctl-1.10.3-linux-amd64.tar.gz
-          dest: /root/cilium-istioctl-1.10.3-linux-amd64.tar.gz
-          checksum: sha256:8b4847a781a175597daed5df7fc12810dbbc2546c6f44214ba92ef0b87a7239f
       - name: Downloading Helm cli
         get_url:
           url: https://get.helm.sh/helm-v3.6.3-linux-amd64.tar.gz
@@ -45,14 +31,6 @@
       - name: Installing Cilium cli
         unarchive:
           src: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
-          dest: /usr/local/bin
-          owner: root
-          group: root
-          mode: '0555'
-          remote_src: true
-      - name: Installing Cilium-istioctl
-        unarchive:
-          src: /root/cilium-istioctl-1.10.3-linux-amd64.tar.gz
           dest: /usr/local/bin
           owner: root
           group: root

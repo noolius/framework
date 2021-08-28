@@ -40,6 +40,8 @@ If you change it, also note (or modify) ``apiserver`` (twice) in ``playbook2.yml
 
 Note also the comment in ``Vagrantfile`` regarding the vbguest plugin.
 
+See also [this section](https://docs.projectcalico.org/getting-started/kubernetes/installation/config-options#switching-from-ip-in-ip-to-vxlan) on modifying calico.yaml.
+
 ## Moar fast!
 
 To provision the nodes as quickly as possible, e.g.,
@@ -59,7 +61,7 @@ versus
 
 The URLs in the playbooks may break (and using URLs with unarchive is likely poor form).
 
-Cilium currently isn't used in the latest commits.
+Cilium currently is used in Calico-chaining mode, and it does not effect a kube-proxy replacement in part or in kind.
 
 ## License
 
