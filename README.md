@@ -42,6 +42,8 @@ Note also the comment in ``Vagrantfile`` regarding the vbguest plugin.
 
 See also [this section](https://docs.projectcalico.org/getting-started/kubernetes/installation/config-options#switching-from-ip-in-ip-to-vxlan) on modifying calico.yaml.
 
+To [fix Cilium connectivity](https://docs.cilium.io/en/v1.10/operations/troubleshooting/#symptom), once --all-namespaces pods are Ready, enable ``auto-direct-node-routes: true`` in cm/cilium-config, then restart deploy/cilium-operator and Cilium agents.
+
 ## Moar fast!
 
 To provision the nodes as quickly as possible, e.g.,
@@ -61,7 +63,7 @@ versus
 
 The URLs in the playbooks may break (and using URLs with unarchive is likely poor form).
 
-Cilium currently is used in Calico-chaining mode, and it does not effect a kube-proxy replacement in part or in kind.
+Cilium currently is used in Calico-chaining mode and not as a kube-proxy replacement, so expect several of the ``cilium connectivity test``s to fail.
 
 ## License
 
