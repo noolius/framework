@@ -179,7 +179,7 @@
         when: chain_cilium is succeeded
       - name: Restarting unmanaged pods
         ansible.builtin.shell: >
-          /usr/bin/kubectl get po --all-namespaces
+          set -o pipefail && /usr/bin/kubectl get po --all-namespaces
           -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTNETWORK:.spec.hostNetwork
           --no-headers=true | awk '/<none>/ {print "-n "$1" "$2}' | xargs -L 1 -r /usr/bin/kubectl delete po
         args:
