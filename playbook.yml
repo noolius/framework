@@ -69,11 +69,9 @@
         net.bridge.bridge-nf-call-ip6tables = 1
         net.netfilter.nf_conntrack_max = 1000000
       repo_contents: |
-        https://sjc.edge.kernel.org/alpine/v3.14/main
-        https://sjc.edge.kernel.org/alpine/v3.14/community
-        https://sjc.edge.kernel.org/alpine/edge/main
-        https://sjc.edge.kernel.org/alpine/edge/community
-        https://sjc.edge.kernel.org/alpine/edge/testing
+        https://dl-3.alpinelinux.org/alpine/edge/main
+        https://dl-3.alpinelinux.org/alpine/edge/community
+        https://dl-3.alpinelinux.org/alpine/edge/testing
       mount_rshared_openrc: |
         #!/sbin/openrc-run
         name="mount_rshared"
@@ -93,7 +91,7 @@
           content: "{{ sysctl_tunables }}"
           dest: /etc/sysctl.d/K8s_v2.conf
           mode: '0444'
-      - name: Replacing /e/apk/repositories to include edge/*
+      - name: Replacing /e/apk/repositories with edge/*
         copy:
           content: "{{ repo_contents }}"
           dest: /etc/apk/repositories
