@@ -146,8 +146,13 @@
         args:
           warn: false
         register: redeploy_calico
-      - name: Installing calicoctl as a pod
-        ansible.builtin.command: /usr/bin/kubectl apply -f https://docs.projectcalico.org/manifests/calicoctl.yaml
+      - name: Installing calicoctl on control-plane
+        get_url:
+          url: https://github.com/projectcalico/calicoctl/releases/download/v3.20.0/calicoctl
+          dest: /usr/local/bin/calicoctl
+          owner: root
+          group: root
+          mode: '0555'
         when: got_calico_manifest is succeeded
       - name: Copying CNI chaining for Cilium
         copy:
@@ -168,9 +173,9 @@
           --set cni.chainingMode=generic-veth --set cni.customConf=true --set cni.configMap=cni-configuration
           --set tunnel=disabled --set enableIPv4Masquerade=false --set enableIdentityMark=false
         when: chain_cilium is succeeded
-      - name: Waiting for Cilium deployment to settle (grace 75s)
+      - name: Waiting for Cilium deployment to settle (grace 35s)
         pause:
-          seconds: 75
+          seconds: 35
         when: chain_cilium is succeeded
       - name: Restarting unmanaged pods
         ansible.builtin.shell: >
