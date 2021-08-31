@@ -36,6 +36,14 @@
           group: root
           mode: '0555'
           remote_src: true
+      - name: Installing Hubble cli
+        unarchive:
+          src: https://github.com/cilium/hubble/releases/latest/download/hubble-linux-amd64.tar.gz
+          dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
       - name: Installing kapp
         copy:
           src: /root/kapp-linux-amd64
