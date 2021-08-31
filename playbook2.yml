@@ -154,6 +154,10 @@
           group: root
           mode: '0555'
         when: got_calico_manifest is succeeded
+      - name: Updating Calico IP autodetection
+        ansible.builtin.command: /usr/bin/kubectl set env ds/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=eth1
+        when: deploy_calico is succeeded or redeploy_calico is succeeded
+        register: update_calico_ip_autodetection
       - name: Copying CNI chaining for Cilium
         copy:
           content: '{{ cni_chaining }}'
@@ -164,7 +168,7 @@
           remote_src: true
       - name: Chaining Cilium on top of Calico
         ansible.builtin.command: /usr/bin/kubectl apply -f /root/cni_chaining
-        when: deploy_calico is succeeded or redeploy_calico is succeeded
+        when: update_calico_ip_autodetection is succeeded
         register: chain_cilium
       - name: Deploying Cilium using its Helm chart
         ansible.builtin.command: >

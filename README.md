@@ -42,7 +42,6 @@ Note also the comment in ``Vagrantfile`` regarding the vbguest plugin.
 
 See also [this section](https://docs.projectcalico.org/getting-started/kubernetes/installation/config-options#switching-from-ip-in-ip-to-vxlan) on modifying calico.yaml.
 
-To [fix Cilium connectivity](https://docs.cilium.io/en/v1.10/operations/troubleshooting/#symptom), once --all-namespaces pods are Ready, enable ``auto-direct-node-routes: true`` in cm/cilium-config, then restart deploy/cilium-operator and Cilium agents.
 
 ## Moar fast!
 
