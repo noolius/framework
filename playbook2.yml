@@ -191,6 +191,38 @@
           warn: false
           executable: /bin/bash
         when: chain_cilium is succeeded
+        register: restarting_pods
+      - name: Running Linkerd pre-install check
+        ansible.builtin.command: /usr/local/bin/linkerd check --pre
+        register: precheck_linkerd
+        when: restarting_pods is succeeded
+      - name: Installing Linkerd config
+        ansible.builtin.shell: >
+          set -o pipefail && /usr/local/bin/linkerd install config | /usr/bin/kubectl apply -f -
+        args:
+          warn: false
+          executable: /bin/bash
+        when: precheck_linkerd.rc == 0
+        register: installing_config_stage_linkerd
+      - name: Validating Linkerd config
+        ansible.builtin.command: /usr/local/bin/linkerd check config
+        register: validating_config_linkerd
+        when: installing_config_stage_linkerd is succeeded
+      - name: Installing Linkerd control-plane
+        ansible.builtin.shell: >
+          set -o pipefail && /usr/local/bin/linkerd install control-plane | /usr/bin/kubectl apply -f -
+        args:
+          warn: false
+          executable: /bin/bash
+        when: validating_config_linkerd.rc == 0
+        register: installing_control_plane_linkerd
+      - name: Waiting for Linkerd deployment to settle (grace 45s)
+        pause:
+          seconds: 45
+        when: installing_control_plane_linkerd.rc == 0
+      - name: Validating Linkerd control-plane
+        ansible.builtin.command: /usr/local/bin/linkerd check
+        when: installing_control_plane_linkerd.rc == 0
   - name: Provisioning Alpine 3.14 K8s (workers, post-first reboot)
     hosts: workers
     become: true

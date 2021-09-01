@@ -13,6 +13,14 @@
           url: https://github.com/vmware-tanzu/carvel-kapp/releases/download/v0.37.0/kapp-linux-amd64
           dest: /root/kapp-linux-amd64
           checksum: sha256:f845233deb6c87feac7c82d9b3f5e03ced9a4672abb1a14d4e5b74fe53bc4538
+      - name: Downloading and installing Linkerd edge
+        get_url:
+          url: https://github.com/linkerd/linkerd2/releases/download/edge-21.8.4/linkerd2-cli-edge-21.8.4-linux-amd64
+          dest: /usr/local/bin/linkerd
+          owner: root
+          group: root
+          mode: '0555'
+          checksum: sha256:1b53a2055974e19239f6b5334c3990c35be936f69d9bfe0b09747f0faf518c77
       - name: Extracting Helm cli
         unarchive:
           src: /root/helm-v3.6.3-linux-amd64.tar.gz
