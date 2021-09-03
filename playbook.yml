@@ -15,12 +15,12 @@
           checksum: sha256:f845233deb6c87feac7c82d9b3f5e03ced9a4672abb1a14d4e5b74fe53bc4538
       - name: Downloading and installing Linkerd edge
         get_url:
-          url: https://github.com/linkerd/linkerd2/releases/download/edge-21.8.4/linkerd2-cli-edge-21.8.4-linux-amd64
+          url: https://github.com/linkerd/linkerd2/releases/download/edge-21.9.1/linkerd2-cli-edge-21.9.1-linux-amd64
           dest: /usr/local/bin/linkerd
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:1b53a2055974e19239f6b5334c3990c35be936f69d9bfe0b09747f0faf518c77
+          checksum: sha256:bc4b338840731776e92a2ea2932053a5081aa3c63761776b8793e09d25855719
       - name: Extracting Helm cli
         unarchive:
           src: /root/helm-v3.6.3-linux-amd64.tar.gz
@@ -141,6 +141,13 @@
             - cri-tools
             - virtualbox-guest-additions-openrc
           state: latest
+      - name: Set /srv 01777 for use by PVs
+        file:
+          path: /srv
+          state: directory
+          owner: root
+          group: root
+          mode: '01777'
       - name: Checking whether to configure salt-minion
         ansible.builtin.stat:
           path: /vagrant/no_salt
