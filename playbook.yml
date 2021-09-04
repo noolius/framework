@@ -141,13 +141,6 @@
             - cri-tools
             - virtualbox-guest-additions-openrc
           state: latest
-      - name: Set /srv 01777 for use by PVs
-        file:
-          path: /srv
-          state: directory
-          owner: root
-          group: root
-          mode: '01777'
       - name: Checking whether to configure salt-minion
         ansible.builtin.stat:
           path: /vagrant/no_salt

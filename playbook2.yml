@@ -230,6 +230,13 @@
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
     tasks:
+      - name: Set /srv 01777 for use by PVs
+        file:
+          path: /srv
+          state: directory
+          owner: root
+          group: root
+          mode: '01777'
       - name: Waiting for node registration token and hash
         wait_for:
           path: /vagrant/text
