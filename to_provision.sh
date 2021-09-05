@@ -1,4 +1,8 @@
 #! /bin/bash
+set -e
+set -x
+set -o pipefail
+
 sudo -l >/dev/null && \
 x=$(. vagrant_loc && echo $v) && \
 rm -f text && \
