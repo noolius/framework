@@ -1,13 +1,13 @@
 # What's here?
 
-Bash scripts and Ansible playbooks to proof-of-concept local, three-node Alpine Linux with Cloud Foundry
+Bash scripts and Ansible playbooks to proof-of-concept a local Alpine Linux cluster with Cloud Foundry
 
 # Why not k0s/K3s/microK8s/RKE2...?
 
 - Local (no "free"-tier AWS/Azure/GCP/Oracle//IBM Cloud/requiring submitting credit card details)
 - Alpine Linux nodes
 - No Docker
-- Cilium (kube-proxy-free with transparent encryption)
+- Cilium (kube-proxy-free with transparent encryption; see Caveats)
 - Vagrant
 - Ansible
 - sh and awk
@@ -22,9 +22,9 @@ Bash scripts and Ansible playbooks to proof-of-concept local, three-node Alpine 
 - 16+ GiB RAM
 - 25+ GiB disk
 - systemd-based
-- VirtualBox 6.1+ with Guest Additions (for shared folders and nested virtualization on AMD **or** Intel)
+- VirtualBox 6.1+
 - Ansible 2.10.7+ with ``community.general`` galaxy collection
-- Vagrant 2.2+ with ``vagrant-reload`` plugin
+- Vagrant 2.2+ with [``vagrant-reload``](https://github.com/aidanns/vagrant-reload) and [``vagrant-sshfs``](https://github.com/dustymabe/vagrant-sshfs) plugins
 
 (Of course, you also can modify the scripts and playbooks with replacements for systemd and VirtualBox, thereby rendering it viable on myriad platforms.)
 
@@ -38,9 +38,7 @@ In ``Vagrantfile``, adjust the ``private_network`` /24 CIDR as necessary.
 
 If you change it, also note (or modify) ``apiserver`` (twice) in ``playbook2.yml``.
 
-Note also the comment in ``Vagrantfile`` regarding the vbguest plugin.
-
-See also [this section](https://docs.projectcalico.org/getting-started/kubernetes/installation/config-options#switching-from-ip-in-ip-to-vxlan) on modifying calico.yaml.
+See also [this section](https://docs.projectcalico.org/getting-started/kubernetes/installation/config-options#switching-from-ip-in-ip-to-vxlan) on modifying ``calico.yaml``.
 
 
 ## Moar fast!
@@ -58,11 +56,13 @@ versus
 .../vagrant up  90.74s user 29.74s system 19% cpu 10:32.48 total
 ```
 
+(performed some while ago with three VBox nodes on a 64GiB Ryzen 7 4800H, USB "SuperSpeed Plus" 3.2 Gen 2x1 external SSD)
+
 ## Caveats
 
 The URLs in the playbooks may break (and using URLs with unarchive is likely poor form).
 
-Cilium currently is used in Calico-chaining mode and not as a kube-proxy replacement, so expect several of the ``cilium connectivity test``s to fail.
+Cilium currently is used in Calico-chaining mode and not as a kube-proxy replacement, so expect several of the ``cilium connectivity test``s to fail. Also, CNI chaining prevents transparent encryption.
 
 ## License
 

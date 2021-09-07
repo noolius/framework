@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 Vagrant.configure("2") do |config|
   # Hosts
-  N = 3
+  N = 4
   (1..N).each do |machine_id|
     config.vm.define "node#{machine_id}" do |machine|
        machine.vm.hostname = "node#{machine_id}"
@@ -12,16 +12,11 @@ Vagrant.configure("2") do |config|
 
   # Template
   ##
-  ## ---> Uses the following plugins: reload
-  ##   The vbguest plugin is referenced here because I have it, but you can
-  ##   comment out the line if you don't.
-  ##
-  ## ---> VBox guest additions need to be active on the _host_.
+  ## ---> Uses the following plugins: reload, sshfs
   ##
   config.vm.box = "roboxes/alpine314"
-  config.vm.synced_folder ".", "/vagrant"
+  config.vm.synced_folder ".", "/vagrant", type: "sshfs"
   config.vm.box_check_update = false
-  config.vbguest.auto_update = false
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
     vb.memory = "8192"
@@ -36,7 +31,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "ansible" do |ansible|
     ansible.groups = {
 	"control_planes" => ["node1"],
-	"workers" => ["node2", "node3"]
+	"workers" => ["node2", "node3", "node4"]
     }
     ansible.playbook = "playbook.yml"
   end
@@ -44,7 +39,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "ansible" do |ansible|
     ansible.groups = {
 	"control_planes" => ["node1"],
-	"workers" => ["node2", "node3"]
+	"workers" => ["node2", "node3", "node4"]
     }
     ansible.playbook = "playbook2.yml"
   end
