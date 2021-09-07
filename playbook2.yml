@@ -125,6 +125,8 @@
           remote_src: true
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
+      - name: Adding Crossplane's Helm charts
+        ansible.builtin.command: /usr/local/bin/helm repo add crossplane-stable https://charts.crossplane.io/stable
       - name: Updating Helm repos
         ansible.builtin.command: /usr/local/bin/helm repo update
       - name: Waiting for api-server to become available
@@ -198,7 +200,7 @@
         when: restarting_pods is succeeded
       - name: Installing Linkerd config
         ansible.builtin.shell: >
-          set -o pipefail && /usr/local/bin/linkerd install config | /usr/bin/kubectl apply -f -
+          set -o pipefail && /usr/local/bin/linkerd install config --ha | /usr/bin/kubectl apply -f -
         args:
           warn: false
           executable: /bin/bash
@@ -210,7 +212,7 @@
         when: installing_config_stage_linkerd is succeeded
       - name: Installing Linkerd control-plane
         ansible.builtin.shell: >
-          set -o pipefail && /usr/local/bin/linkerd install control-plane | /usr/bin/kubectl apply -f -
+          set -o pipefail && /usr/local/bin/linkerd install control-plane --ha | /usr/bin/kubectl apply -f -
         args:
           warn: false
           executable: /bin/bash
@@ -222,6 +224,12 @@
         when: installing_control_plane_linkerd.rc == 0
       - name: Validating Linkerd control-plane
         ansible.builtin.command: /usr/local/bin/linkerd check
+        when: installing_control_plane_linkerd.rc == 0
+      - name: Creating namespace for Crossplane
+        ansible.builtin.command: /usr/bin/kubectl create ns crossplane-system
+        when: installing_control_plane_linkerd.rc == 0
+      - name: Deploying Crossplane using its Helm chart
+        ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
         when: installing_control_plane_linkerd.rc == 0
   - name: Provisioning Alpine 3.14 K8s (workers, post-first reboot)
     hosts: workers

@@ -21,6 +21,19 @@
           group: root
           mode: '0555'
           checksum: sha256:bc4b338840731776e92a2ea2932053a5081aa3c63761776b8793e09d25855719
+      - name: Downloading and installing Crossplane cli
+        get_url:
+          url: https://releases.crossplane.io/stable/current/bin/linux_amd64/crank
+          dest: /usr/local/bin/kubectl-crossplane
+          owner: root
+          group: root
+          mode: '0555'
+          checksum: sha256:8bf19ee6f59e60ebd6b921831fb4d75a098bf9c6b6d4ae77ec2bb218076a5e23
+      - name: Downloading Thanos cli
+        get_url:
+          url: https://github.com/thanos-io/thanos/releases/download/v0.22.0/thanos-0.22.0.linux-amd64.tar.gz
+          dest: /root/thanos-0.22.0.linux-amd64.tar.gz
+          checksum: sha256:0b930bbd7636aa9377b0ba8e8f01bd7affd79162abe798b2ed042b26d7b46df8
       - name: Extracting Helm cli
         unarchive:
           src: /root/helm-v3.6.3-linux-amd64.tar.gz
@@ -48,6 +61,14 @@
         unarchive:
           src: https://github.com/cilium/hubble/releases/latest/download/hubble-linux-amd64.tar.gz
           dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+      - name: Installing Thanos cli
+        unarchive:
+          src: /root/thanos-0.22.0.linux-amd64.tar.gz
+          dest: /usr/local/bin/thanos
           owner: root
           group: root
           mode: '0555'
