@@ -218,9 +218,9 @@
           executable: /bin/bash
         when: validating_config_linkerd.rc == 0
         register: installing_control_plane_linkerd
-      - name: Waiting for Linkerd deployment to settle (grace 45s)
+      - name: Waiting for Linkerd deployment to settle (grace 90s)
         pause:
-          seconds: 45
+          seconds: 90
         when: installing_control_plane_linkerd.rc == 0
       - name: Validating Linkerd control-plane
         ansible.builtin.command: /usr/local/bin/linkerd check
