@@ -18,6 +18,44 @@
     vars:
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
+      calico_manifest_diff: |
+        --- calico.yaml 2021-08-08 12:00:17.582096536 -0400
+        +++ calico.yaml 2021-08-30 23:59:21.350456483 -0400
+        @@ -3848,12 +3848,14 @@
+                     # Auto-detect the BGP IP address.
+                     - name: IP
+                       value: "autodetect"
+        +            - name: IP_AUTODETECTION_METHOD
+        +              value: "interface=eth1"
+                     # Enable IPIP
+                     - name: CALICO_IPV4POOL_IPIP
+        -              value: "Always"
+        +              value: "Never"
+                     # Enable or Disable VXLAN on the default IP pool.
+                     - name: CALICO_IPV4POOL_VXLAN
+        -              value: "Never"
+        +              value: "Always"
+                     # Set MTU for tunnel device used if ipip is enabled
+                     - name: FELIX_IPINIPMTU
+                       valueFrom:
+        @@ -3898,7 +3900,7 @@
+                       command:
+                       - /bin/calico-node
+                       - -felix-live
+        -              - -bird-live
+        +                #    - -bird-live
+                     periodSeconds: 10
+                     initialDelaySeconds: 10
+                     failureThreshold: 6
+        @@ -3908,7 +3910,7 @@
+                       command:
+                       - /bin/calico-node
+                       - -felix-ready
+        -              - -bird-ready
+        +                #  - -bird-ready
+                     periodSeconds: 10
+                     timeoutSeconds: 10
+                   volumeMounts:
       cni_chaining: |
         apiVersion: v1
         kind: ConfigMap
@@ -132,18 +170,32 @@
       - name: Waiting for api-server to become available
         wait_for:
           port: '{{ k8s_serviceport | quote }}'
-      - name: Waiting for (modified) Calico manifest
-        wait_for:
-          path: /vagrant/calico.yaml
-          search_regex: 'CALICO_IPV4POOL_IPIP'
+      - name: Downloading Calico networking manifest
+        get_url:
+          url: https://docs.projectcalico.org/archive/v3.20/manifests/calico.yaml
+          dest: /root/calico.yaml
+          checksum: sha256:d06d1d0ce9762b5ba903be027b81f32b0779b5c5abfb8d9c95e2cfd119b3c833
+      - name: Writing unified GNU diff of Calico networking manifest
+        copy:
+          content: '{{ calico_manifest_diff }}'
+          dest: /root/calico.yaml.diff
+          owner: root
+          group: root
+          mode: '0444'
+          remote_src: true
+      - name: Modifying Calico manifest
+        ansible.posix.patch:
+          src: /root/calico.yaml.diff
+          dest: /root/calico.yaml
+          remote_src: true
         register: got_calico_manifest
       - name: Deploying Calico
-        ansible.builtin.command: /usr/bin/kubectl apply -f /vagrant/calico.yaml
+        ansible.builtin.command: /usr/bin/kubectl apply -f /root/calico.yaml
         when: got_calico_manifest is succeeded
         register: deploy_calico
         ignore_errors: true
       - name: Re-deploying Calico due to missing kinds in ClusterRole*/PodDisruptionBudget
-        ansible.builtin.shell: /usr/bin/kubectl delete -f /vagrant/calico.yaml ; /usr/bin/kubectl apply -f /vagrant/calico.yaml
+        ansible.builtin.shell: /usr/bin/kubectl delete -f /root/calico.yaml ; /usr/bin/kubectl apply -f /root/calico.yaml
         when: "'no matches for kind' in deploy_calico.stderr"
         args:
           warn: false
