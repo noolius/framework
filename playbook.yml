@@ -56,7 +56,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:dde868441fd1fa56f7b2125c7a661d731aaf7d99d500faff998e2f8b1e7c9f57
+          checksum: sha256:fafd695f029f4406304eb0c951d21cc3074f3c1e53fbc198fe521ee16797c095
       - name: Installing Hubble cli
         unarchive:
           src: https://github.com/cilium/hubble/releases/latest/download/hubble-linux-amd64.tar.gz
