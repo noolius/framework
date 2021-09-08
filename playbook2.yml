@@ -200,7 +200,7 @@
         when: restarting_pods is succeeded
       - name: Installing Linkerd config
         ansible.builtin.shell: >
-          set -o pipefail && /usr/local/bin/linkerd install config --ha | /usr/bin/kubectl apply -f -
+          set -o pipefail && /usr/local/bin/linkerd install config | /usr/bin/kubectl apply -f -
         args:
           warn: false
           executable: /bin/bash
@@ -212,7 +212,7 @@
         when: installing_config_stage_linkerd is succeeded
       - name: Installing Linkerd control-plane
         ansible.builtin.shell: >
-          set -o pipefail && /usr/local/bin/linkerd install control-plane --ha | /usr/bin/kubectl apply -f -
+          set -o pipefail && /usr/local/bin/linkerd install --ha control-plane | /usr/bin/kubectl apply -f -
         args:
           warn: false
           executable: /bin/bash
