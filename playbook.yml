@@ -8,32 +8,6 @@
           url: https://get.helm.sh/helm-v3.6.3-linux-amd64.tar.gz
           dest: /root/helm-v3.6.3-linux-amd64.tar.gz
           checksum: sha256:07c100849925623dc1913209cd1a30f0a9b80a5b4d6ff2153c609d11b043e262
-      - name: Downloading kapp cli
-        get_url:
-          url: https://github.com/vmware-tanzu/carvel-kapp/releases/download/v0.37.0/kapp-linux-amd64
-          dest: /root/kapp-linux-amd64
-          checksum: sha256:f845233deb6c87feac7c82d9b3f5e03ced9a4672abb1a14d4e5b74fe53bc4538
-      - name: Downloading and installing Linkerd edge cli
-        get_url:
-          url: https://github.com/linkerd/linkerd2/releases/download/edge-21.9.1/linkerd2-cli-edge-21.9.1-linux-amd64
-          dest: /usr/local/bin/linkerd
-          owner: root
-          group: root
-          mode: '0555'
-          checksum: sha256:bc4b338840731776e92a2ea2932053a5081aa3c63761776b8793e09d25855719
-      - name: Downloading and installing Crossplane cli
-        get_url:
-          url: https://releases.crossplane.io/stable/current/bin/linux_amd64/crank
-          dest: /usr/local/bin/kubectl-crossplane
-          owner: root
-          group: root
-          mode: '0555'
-          checksum: sha256:8bf19ee6f59e60ebd6b921831fb4d75a098bf9c6b6d4ae77ec2bb218076a5e23
-      - name: Downloading Thanos cli
-        get_url:
-          url: https://github.com/thanos-io/thanos/releases/download/v0.22.0/thanos-0.22.0.linux-amd64.tar.gz
-          dest: /root/thanos-0.22.0.linux-amd64.tar.gz
-          checksum: sha256:0b930bbd7636aa9377b0ba8e8f01bd7affd79162abe798b2ed042b26d7b46df8
       - name: Extracting Helm cli
         unarchive:
           src: /root/helm-v3.6.3-linux-amd64.tar.gz
@@ -49,22 +23,61 @@
           group: root
           mode: '0555'
           remote_src: true
-      - name: Downloading and installing Cilium cli
+      - name: Downloading and installing kapp cli
         get_url:
-          url: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
-          dest: /usr/local/bin/cilium
+          url: https://github.com/vmware-tanzu/carvel-kapp/releases/download/v0.37.0/kapp-linux-amd64
+          dest: /usr/local/bin/kapp
           owner: root
           group: root
           mode: '0555'
+          checksum: sha256:f845233deb6c87feac7c82d9b3f5e03ced9a4672abb1a14d4e5b74fe53bc4538
+      - name: Downloading and installing Linkerd2 edge cli
+        get_url:
+          url: https://github.com/linkerd/linkerd2/releases/download/edge-21.9.1/linkerd2-cli-edge-21.9.1-linux-amd64
+          dest: /usr/local/bin/linkerd
+          owner: root
+          group: root
+          mode: '0555'
+          checksum: sha256:bc4b338840731776e92a2ea2932053a5081aa3c63761776b8793e09d25855719
+      - name: Downloading and installing Crossplane cli
+        get_url:
+          url: https://releases.crossplane.io/stable/current/bin/linux_amd64/crank
+          dest: /usr/local/bin/kubectl-crossplane
+          owner: root
+          group: root
+          mode: '0555'
+          checksum: sha256:8bf19ee6f59e60ebd6b921831fb4d75a098bf9c6b6d4ae77ec2bb218076a5e23
+      - name: Downloading Cilium cli
+        get_url:
+          url: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
+          dest: /root/cilium-linux-amd64.tar.gz
           checksum: sha256:fafd695f029f4406304eb0c951d21cc3074f3c1e53fbc198fe521ee16797c095
-      - name: Installing Hubble cli
+      - name: Installing Cilium cli
         unarchive:
-          src: https://github.com/cilium/hubble/releases/latest/download/hubble-linux-amd64.tar.gz
+          src: /root/cilium-linux-amd64.tar.gz
           dest: /usr/local/bin
           owner: root
           group: root
           mode: '0555'
           remote_src: true
+      - name: Downloading Hubble cli
+        get_url:
+          url: https://github.com/cilium/hubble/releases/latest/download/hubble-linux-amd64.tar.gz
+          dest: /root/hubble-linux-amd64.tar.gz
+          checksum: sha256:919ed7e2af1bf2335c6967b34ba3fac406a4948f9b54ebcace96ebc3a16fc9d0
+      - name: Installing Hubble cli
+        unarchive:
+          src: /root/hubble-linux-amd64.tar.gz
+          dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+      - name: Downloading Thanos cli
+        get_url:
+          url: https://github.com/thanos-io/thanos/releases/download/v0.22.0/thanos-0.22.0.linux-amd64.tar.gz
+          dest: /root/thanos-0.22.0.linux-amd64.tar.gz
+          checksum: sha256:0b930bbd7636aa9377b0ba8e8f01bd7affd79162abe798b2ed042b26d7b46df8
       - name: Installing Thanos cli
         unarchive:
           src: /root/thanos-0.22.0.linux-amd64.tar.gz
@@ -73,17 +86,14 @@
           group: root
           mode: '0555'
           remote_src: true
-      - name: Installing kapp
-        copy:
-          src: /root/kapp-linux-amd64
-          dest: /usr/local/bin/kapp
-          owner: root
-          group: root
-          mode: '0555'
-          remote_src: true
-      - name: Installing cf cli
+      - name: Downloading cf v7 cli
+        get_url:
+          url: https://s3-us-west-1.amazonaws.com/v7-cf-cli-releases/releases/v7.3.0/cf7-cli_7.3.0_linux_x86-64.tgz
+          dest: /root/cf7-cli_7.3.0_linux_x86-64.tgz
+          checksum: sha256:7a78614b2bb58e633d9488a357871c3ce2cc1b70b08f3e56d2bb9c82505565f9
+      - name: Installing cf v7 cli
         unarchive:
-          src: https://s3-us-west-1.amazonaws.com/v7-cf-cli-releases/releases/v7.2.0/cf7-cli_7.2.0_linux_x86-64.tgz
+          src: /root/cf7-cli_7.3.0_linux_x86-64.tgz
           dest: /usr/local/bin
           owner: root
           group: root
@@ -231,4 +241,5 @@
           name:
             - kubectl
             - ytt
+            - patch
           state: latest
