@@ -9,4 +9,4 @@ $x status | \
                                  awk '
 			     /poweroff/{gsub(/ $/, "", $0);print $1}
                              ' | \
-                                 xargs -P3 -I {} $x up {}
+                                 xargs -P4 -I {} $x up {}

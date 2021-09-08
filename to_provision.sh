@@ -17,4 +17,4 @@ $x status | \
                                  awk '
 			     /not created/{gsub(/ $/, "", $0);print $1}
                              ' | \
-                                 xargs -P3 -I {} $x up --provision {}
+                                 xargs -P4 -I {} $x up --provision {}
