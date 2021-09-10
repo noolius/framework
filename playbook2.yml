@@ -319,24 +319,15 @@
           --set tunnel=disabled --set enableIPv4Masquerade=false --set enableIdentityMark=false
           --set hubble.relay.enabled=true --set hubble.ui.enabled=true
         when: chain_cilium is succeeded
+        register: deploy_cilium
       - name: Waiting for Cilium deployment to settle (grace 35s)
         pause:
           seconds: 35
         when: chain_cilium is succeeded
-      - name: Restarting unmanaged pods
-        ansible.builtin.shell: >
-          set -o pipefail && /usr/bin/kubectl get po --all-namespaces
-          -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTNETWORK:.spec.hostNetwork
-          --no-headers=true | awk '/<none>/ {print "-n "$1" "$2}' | xargs -L 1 -r /usr/bin/kubectl delete po
-        args:
-          warn: false
-          executable: /bin/bash
-        when: chain_cilium is succeeded
-        register: restarting_pods
       - name: Running Linkerd pre-install check
         ansible.builtin.command: /usr/local/bin/linkerd check --pre
         register: precheck_linkerd
-        when: restarting_pods is succeeded
+        when: deploy_cilium is succeeded
       - name: Installing Linkerd config
         ansible.builtin.shell: >
           set -o pipefail && /usr/local/bin/linkerd install config | /usr/bin/kubectl apply -f -
