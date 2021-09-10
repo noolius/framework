@@ -246,6 +246,5 @@
         community.general.apk:
           name:
             - kubectl
-            - ytt
             - patch
           state: latest
