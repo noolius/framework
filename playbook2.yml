@@ -18,6 +18,61 @@
     vars:
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
+      storageclass_manifest: |
+        apiVersion: storage.k8s.io/v1
+        kind: StorageClass
+        metadata:
+          name: local
+        provisioner: kubernetes.io/no-provisioner
+        volumeBindingMode: WaitForFirstConsumer
+      persistentvolume1_manifest: |
+        apiVersion: v1
+        kind: PersistentVolume
+        metadata:
+          name: pv-1
+        spec:
+          capacity:
+            storage: 10Gi
+          volumeMode: Filesystem
+          accessModes:
+          - ReadWriteOnce
+          persistentVolumeReclaimPolicy: Delete
+          local:
+            path: /srv
+          nodeAffinity:
+            required:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                  - node2
+                  - node3
+                  - node4
+      persistentvolume2_manifest: |
+        apiVersion: v1
+        kind: PersistentVolume
+        metadata:
+          name: pv-2
+        spec:
+          capacity:
+            storage: 10Gi
+          volumeMode: Filesystem
+          accessModes:
+          - ReadWriteOnce
+          persistentVolumeReclaimPolicy: Delete
+          local:
+            path: /srv
+          nodeAffinity:
+            required:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                  - node2
+                  - node3
+                  - node4
       calico_manifest_diff: |
         --- calico.yaml 2021-08-08 12:00:17.582096536 -0400
         +++ calico.yaml 2021-08-30 23:59:21.350456483 -0400
@@ -161,6 +216,30 @@
           group: vagrant
           mode: '0400'
           remote_src: true
+      - name: Writing StorageClass manifest
+        copy:
+          content: '{{ storageclass_manifest }}'
+          dest: /root/sc_manif
+          owner: root
+          group: root
+          mode: '0444'
+          remote_src: true
+      - name: Writing PersistentVolume 1 manifest
+        copy:
+          content: '{{ persistentvolume1_manifest }}'
+          dest: /root/pv1_manif
+          owner: root
+          group: root
+          mode: '0444'
+          remote_src: true
+      - name: Writing PersistentVolume 2 manifest
+        copy:
+          content: '{{ persistentvolume2_manifest }}'
+          dest: /root/pv2_manif
+          owner: root
+          group: root
+          mode: '0444'
+          remote_src: true
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
       - name: Adding Crossplane's Helm charts
@@ -170,6 +249,7 @@
       - name: Waiting for api-server to become available
         wait_for:
           port: '{{ k8s_serviceport | quote }}'
+        register: apiserver_avail
       - name: Downloading Calico networking manifest
         get_url:
           url: https://docs.projectcalico.org/archive/v3.20/manifests/calico.yaml
@@ -191,7 +271,7 @@
         register: got_calico_manifest
       - name: Deploying Calico
         ansible.builtin.command: /usr/bin/kubectl apply -f /root/calico.yaml
-        when: got_calico_manifest is succeeded
+        when: got_calico_manifest is succeeded and apiserver_avail is succeeded
         register: deploy_calico
         ignore_errors: true
       - name: Re-deploying Calico due to missing kinds in ClusterRole*/PodDisruptionBudget
@@ -283,6 +363,15 @@
       - name: Deploying Crossplane using its Helm chart
         ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
         when: installing_control_plane_linkerd.rc == 0
+      - name: Registering local StorageClass
+        ansible.builtin.command: /usr/bin/kubectl create -f /root/sc_manif
+        when: apiserver_avail is succeeded
+      - name: Registering PersistentVolume 1 (workers)
+        ansible.builtin.command: /usr/bin/kubectl create -f /root/pv1_manif
+        when: apiserver_avail is succeeded
+      - name: Registering PersistentVolume 2 (workers)
+        ansible.builtin.command: /usr/bin/kubectl create -f /root/pv2_manif
+        when: apiserver_avail is succeeded
   - name: Provisioning Alpine 3.14 K8s (workers, post-first reboot)
     hosts: workers
     become: true
