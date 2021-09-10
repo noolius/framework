@@ -7,7 +7,7 @@ Bash scripts and Ansible playbooks to proof-of-concept a local Alpine Linux clus
 - Local (no "free"-tier AWS/Azure/GCP/Oracle//IBM Cloud/requiring submitting credit card details)
 - Alpine Linux nodes
 - No Docker
-- Cilium (kube-proxy-free with transparent encryption; see Caveats)
+- Cilium (see Caveats)
 - Vagrant
 - Ansible
 - sh and awk
@@ -62,7 +62,9 @@ versus
 
 The URLs in the playbooks may break.
 
-Cilium currently is used in Calico-chaining mode and not as a kube-proxy replacement, so expect several of the ``cilium connectivity test``s to fail. Also, CNI chaining prevents transparent encryption.
+Cilium is used in Calico-chaining mode and not as a kube-proxy replacement, so expect several of the ``cilium connectivity test``s to fail.
+
+Calico is configured to encipher intra-cluster pod traffic using WireGuard(tm).
 
 ## License
 
