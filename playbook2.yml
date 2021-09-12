@@ -298,6 +298,14 @@
       - name: Applying WireGuard(tm) enciphering for in-cluster pod traffic
         ansible.builtin.command: /usr/local/bin/calicoctl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
         when: update_calico_ip_autodetection_pre_wg is succeeded
+        register: apply_wg
+      - name: Patching ConfigMap to modify MTU (-> 1440) for cluster traffic
+        ansible.builtin.command: /usr/bin/kubectl patch cm/calico-config -n kube-system --type merge -p '{"data":{"veth_mtu":"1440"}}'
+        when: apply_wg is succeeded
+        register: modify_mtu_post_wg
+      - name: Redeploying Calico pods with ConfigMap change
+        ansible.builtin.command: /usr/bin/kubectl rollout restart ds/calico-node -n kube-system
+        when: modify_mtu_post_wg is succeeded
         register: update_calico_ip_autodetection
       - name: Copying CNI chaining for Cilium
         copy:
