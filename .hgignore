@@ -4,6 +4,7 @@ cf
 cilium
 flannel
 helm
+.idea
 kapp
 kubecf
 linkerd
