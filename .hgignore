@@ -6,6 +6,7 @@ flannel
 helm
 .idea
 kapp
+kcat
 kubecf
 linkerd
 linux-amd64

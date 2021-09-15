@@ -247,4 +247,19 @@
           name:
             - kubectl
             - patch
+            - librdkafka
+            - yajl
           state: latest
+      - name: Checking whether to copy kcat
+        ansible.builtin.stat:
+          path: /vagrant/kcat
+        register: test_kcat
+      - name: Copying kcat
+        copy:
+          src: /vagrant/kcat
+          dest: /usr/local/bin/kcat
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+        when: test_kcat.stat.exists
