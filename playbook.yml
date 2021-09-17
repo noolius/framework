@@ -35,12 +35,12 @@
           checksum: sha256:f845233deb6c87feac7c82d9b3f5e03ced9a4672abb1a14d4e5b74fe53bc4538
       - name: Downloading and installing Linkerd2 edge cli
         get_url:
-          url: https://github.com/linkerd/linkerd2/releases/download/edge-21.9.2/linkerd2-cli-edge-21.9.2-linux-amd64
+          url: https://github.com/linkerd/linkerd2/releases/download/edge-21.9.3/linkerd2-cli-edge-21.9.3-linux-amd64
           dest: /usr/local/bin/linkerd
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:b401cfc6c2d29d5755ebce0df2e8ddd7cf499f9185755554357c6a24918d6375
+          checksum: sha256:f9c29301255d2088af4f857f4bc7c89b1b1b7511174321e3db08fd47091d6de2
       - name: Downloading and installing Crossplane cli
         get_url:
           url: https://releases.crossplane.io/stable/current/bin/linux_amd64/crank
