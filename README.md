@@ -66,6 +66,10 @@ Cilium is used in Calico-chaining mode and not as a kube-proxy replacement, so e
 
 Calico is configured to encipher intra-cluster pod traffic using WireGuard(tm).
 
+## Known issues
+
+Deploying the Linkerd2 edge-21.9.3 [viz extension](https://linkerd.io/2/getting-started/) in a v1.22.2 cluster errors out; this is a [policy CRD v1beta1 interaction](https://github.com/linkerd/linkerd2/issues/6827).
+
 ## License
 
 Items in this repository are released into the public domain, AKA "The Unlicense," as per https://choosealicense.com/licenses/unlicense/
