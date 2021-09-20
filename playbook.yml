@@ -126,6 +126,24 @@
           remote_src: true
           extra_opts:
           - kubectl-cert_manager
+      - name: Downloading Kustomize
+        get_url:
+          url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.3.0/kustomize_v4.3.0_linux_amd64.tar.gz
+          dest: /root/kustomize_v4.3.0_linux_amd64.tar.gz
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:d34818d2b5d52c2688bce0e10f7965aea1a362611c4f1ddafd95c4d90cb63319
+      - name: Installing Kustomize
+        unarchive:
+          src: /root/kustomize_v4.3.0_linux_amd64.tar.gz
+          dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+          extra_opts:
+          - kustomize
   - name: Provisioning Alpine 3.14 K8s (all)
     hosts: "*"
     become: true
