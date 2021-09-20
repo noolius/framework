@@ -267,6 +267,7 @@
             - patch
             - librdkafka
             - yajl
+            - coreutils
           state: latest
       - name: Checking whether to copy kcat
         ansible.builtin.stat:
