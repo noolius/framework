@@ -108,6 +108,24 @@
           extra_opts:
           - cf7
           - cf
+      - name: Downloading kubectl cert-manager
+        get_url:
+          url: https://github.com/jetstack/cert-manager/releases/download/v1.5.3/kubectl-cert_manager-linux-amd64.tar.gz
+          dest: /root/kubectl-cert_manager-linux-amd64.tar.gz
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:58fb65e5b38e63c664b9219a5b1f555727cde2bc7e7f495cfe00ecb078da4b44
+      - name: Installing kubectl cert-manager
+        unarchive:
+          src: /root/kubectl-cert_manager-linux-amd64.tar.gz
+          dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+          extra_opts:
+          - kubectl-cert_manager
   - name: Provisioning Alpine 3.14 K8s (all)
     hosts: "*"
     become: true
