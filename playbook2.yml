@@ -386,7 +386,7 @@
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
     tasks:
-      - name: Set /srv 01777 for use by PVs
+      - name: Setting /srv 01777 for use by PVs
         file:
           path: /srv
           state: directory
