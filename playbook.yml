@@ -212,7 +212,6 @@
             - kubelet
             - kubeadm
             - cri-tools
-            - virtualbox-guest-additions-openrc
           state: latest
       - name: Checking whether to configure salt-minion
         ansible.builtin.stat:
@@ -269,10 +268,6 @@
       - name: Enabling service to mount --make-rshared /
         service:
           name: mount_rshared
-          enabled: true
-      - name: Enabling virtualbox-guest-additions service
-        service:
-          name: virtualbox-guest-additions
           enabled: true
   - name: Provisioning Alpine 3.14 K8s (control-planes...more)
     hosts: control_planes
