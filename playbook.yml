@@ -5,13 +5,13 @@
     tasks:
       - name: Downloading Helm cli
         get_url:
-          url: https://get.helm.sh/helm-v3.6.3-linux-amd64.tar.gz
-          dest: /root/helm-v3.6.3-linux-amd64.tar.gz
+          url: https://get.helm.sh/helm-v3.7.0-linux-amd64.tar.gz
+          dest: /root/helm-v3.7.0-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:07c100849925623dc1913209cd1a30f0a9b80a5b4d6ff2153c609d11b043e262
+          checksum: sha256:096e30f54c3ccdabe30a8093f8e128dba76bb67af697b85db6ed0453a2701bf9
       - name: Extracting Helm cli
         unarchive:
-          src: /root/helm-v3.6.3-linux-amd64.tar.gz
+          src: /root/helm-v3.7.0-linux-amd64.tar.gz
           dest: /root
           mode: '0400'
           remote_src: true
