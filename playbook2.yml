@@ -293,9 +293,9 @@
         ansible.builtin.command: /usr/bin/kubectl set env ds/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=eth1
         when: deploy_calico is succeeded or redeploy_calico is succeeded
         register: update_calico_ip_autodetection_pre_wg
-      - name: Waiting for Calico to settle (grace 29s)
+      - name: Waiting for Calico to settle (grace 59s)
         pause:
-          seconds: 29
+          seconds: 59
       - name: Applying WireGuard(tm) enciphering for in-cluster pod traffic
         ansible.builtin.command: /usr/local/bin/calicoctl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
         when: update_calico_ip_autodetection_pre_wg is succeeded
