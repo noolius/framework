@@ -294,6 +294,7 @@
           group: root
           mode: '0555'
           remote_src: true
+          checksum: 7640e8c2b3d681edc04f8ad6384e822d877c89ed
         when: test_kcat.stat.exists
       - name: Checking whether to copy stern
         ansible.builtin.stat:
