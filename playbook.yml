@@ -295,3 +295,17 @@
           mode: '0555'
           remote_src: true
         when: test_kcat.stat.exists
+      - name: Checking whether to copy stern
+        ansible.builtin.stat:
+          path: /vagrant/stern
+        register: test_stern
+      - name: Copying stern
+        copy:
+          src: /vagrant/stern
+          dest: /usr/local/bin/stern
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+          checksum: a776b5c4d8fa9d253e1f911d86eb1ca78934ff16
+        when: test_stern.stat.exists
