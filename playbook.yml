@@ -280,6 +280,7 @@
           name:
             - kubectl
             - patch
+            - yq
             - librdkafka
             - yajl
             - coreutils
