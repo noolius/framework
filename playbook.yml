@@ -313,3 +313,31 @@
           remote_src: true
           checksum: a776b5c4d8fa9d253e1f911d86eb1ca78934ff16
         when: test_stern.stat.exists
+      - name: Checking whether to copy kubectx
+        ansible.builtin.stat:
+          path: /vagrant/kubectx
+        register: test_kubectx
+      - name: Copying kubectx
+        copy:
+          src: /vagrant/kubectx
+          dest: /usr/local/bin/kubectx
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+          checksum: 943c0d47b5bd45fe0f8ea6b43dada537f87acbd6
+        when: test_kubectx.stat.exists
+      - name: Checking whether to copy kubens
+        ansible.builtin.stat:
+          path: /vagrant/kubens
+        register: test_kubens
+      - name: Copying kubens
+        copy:
+          src: /vagrant/kubens
+          dest: /usr/local/bin/kubens
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+          checksum: 8244d59345c9f78572db4a86b628a9cab13ebc92
+        when: test_kubens.stat.exists

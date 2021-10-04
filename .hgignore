@@ -7,7 +7,7 @@ helm
 .idea
 kapp
 kcat
-kubecf
+kube
 linkerd
 linux-amd64
 node
@@ -17,6 +17,6 @@ pub_fingerprint
 stern
 strimzi
 text
-.vagrant
 .v1.
+.vagrant
 vagrant_loc
