@@ -254,7 +254,7 @@
         get_url:
           url: https://docs.projectcalico.org/archive/v3.20/manifests/calico.yaml
           dest: /root/calico.yaml
-          checksum: sha256:2c236eab1b0a8f8243faa97b479e54e3814d31a24432c1c40980f7f75af9150b
+          checksum: sha256:1fdae6e3069e95b6006a39fd485fd9e9deda703d909eb4cd62827508f1f48421
       - name: Writing unified GNU diff of Calico networking manifest
         copy:
           content: '{{ calico_manifest_diff }}'
@@ -282,12 +282,12 @@
         register: redeploy_calico
       - name: Installing calicoctl on control-plane
         get_url:
-          url: https://github.com/projectcalico/calicoctl/releases/download/v3.20.1/calicoctl
+          url: https://github.com/projectcalico/calicoctl/releases/download/v3.20.2/calicoctl
           dest: /usr/local/bin/calicoctl
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:2d9367f9ae81bb4bb677b991e2a558012e35a22607f32dd3898eab71f8f5a01c
+          checksum: sha256:532b6ca6eb4b9e8f9656ba2c01e3cee24a11b812e360ec6eb540fab8ff908b65
         when: got_calico_manifest is succeeded
       - name: Updating Calico IP autodetection
         ansible.builtin.command: /usr/bin/kubectl set env ds/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=eth1
