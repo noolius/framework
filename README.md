@@ -18,7 +18,7 @@ Bash scripts and Ansible playbooks to proof-of-concept a local Alpine Linux clus
 
 ## Host requirements
 
-- 8+ virtual CPU cores
+- 4+ virtual CPU cores
 - 16+ GiB RAM
 - 25+ GiB disk
 - systemd-based
