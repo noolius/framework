@@ -1,0 +1,28 @@
+spec:
+  cacheSpec:
+  - images:
+    - cr.l5d.io/linkerd/policy-controller:edge-21.10.1@sha256:804c117f5776b4dea1973dd675b71e556f609e968a1ee74d215e75af877b8201
+    - cr.l5d.io/linkerd/proxy:edge-21.10.1@sha256:34d145cef1896c38d63614c9d7d5fa04fb991016b07178050b1de6adb445c712
+    - cr.l5d.io/linkerd/proxy-init:v1.4.1@sha256:3db0232fe846929c800fa3d8c43875018181e673f0eb6f2c140c3f324820a3ef
+    - cr.l5d.io/linkerd/controller:edge-21.10.1@sha256:43fdd974673a47fbedbc70a574bad83dd708fca6f07d1043e2691a76d406719b
+    - docker.io/crossplane/crossplane:v1.4.1@sha256:dd91b8afcce7164719080600b3ee6fe5e6935fab6fcb5bfa07527ba2108d2d4d
+    - docker.elastic.co/elasticsearch/elasticsearch:7.15.0@sha256:6ae227c688e05f7d487e0cfe08a5a3681f4d60d006ad9b5a1f72a741d6091df1
+    - docker.elastic.co/eck/eck-operator:1.8.0@sha256:61d809705b3d65710d12e78a7e76cc2ff195fbd3bb3986d4df2fb80ebd29956a
+    - docker.io/senthilrch/kubefledged-controller:v0.8.2@sha256:51b05936dcbd9b80e41d7b9be76d20b6a1a334ac7dd4c1e2a442a12f0dda59c6
+    - docker.io/senthilrch/kubefledged-cri-client:v0.8.2@sha256:1661e227268104849deced4515aefaef6c2075684865acf93a877e1507c09243
+    - docker.io/senthilrch/kubefledged-webhook-server:v0.8.2@sha256:9a5b57ee52a1c572c7abf4ab24f8d8c508f7dcbbf5ba1965c528e9212afa31ca
+    - docker.io/calico/node:v3.20.2@sha256:1ae8f57edec7c3a84cd48dd94132a1dcfd7c61bfff819c559f9379d4a56fe3b1
+    - docker.io/calico/cni:v3.20.2@sha256:3dae26de7388ff3c124b9abd7e8d12863887391f23549c4aebfbfa20cc0700a5
+    - docker.io/calico/pod2daemon-flexvol:v3.20.2@sha256:4514cc1b2f7536fe1d514fad8a2c46103382243bb9db5ea2d0063fcd2001e8f7
+    - docker.io/calico/kube-controllers:v3.20.2@sha256:985620c7a0cf75ebf7b23960dda7594fe40cf00bc2ef59c935c581b1b4fc4c63
+    - quay.io/cilium/cilium:v1.11.0-rc0@sha256:95fa7c285f525cf1cf53921d39fccaede425e52e94033015ffa046ddb0edf461
+    - quay.io/cilium/operator-generic:v1.11.0-rc0@sha256:587a2c33c698b4900493e31aaded714480be7bde54ed9ce8e41d05a02af9ade5
+    - quay.io/cilium/hubble-relay:v1.11.0-rc0@sha256:6701a9d2368f02ba866c5e790b9df51920da1756de619701807151be1c6d8568
+    - quay.io/cilium/hubble-ui:v0.8.2@sha256:a6f80b0517a5266783d619ae14d846d4fbb692f6aaff37804fc8851bf1095a30
+    - quay.io/cilium/hubble-ui-backend:v0.8.2@sha256:43c1e824751639b1df9460e5c5d5a3fd732f834bb96b3012a4164eeee457cbb6
+    - docker.io/envoyproxy/envoy:v1.18.4@sha256:e5c2bb2870d0e59ce917a5100311813b4ede96ce4eb0c6bfa879e3fbe3e83935
+    - docker.io/streamnative/apache-pulsar-grafana-dashboard-k8s:0.0.10@sha256:ebcf7f033b549dbc7c34c7e8e9b6164d3a23164b3875a29f1dc4bc0515b16a5f
+    - docker.io/prom/prometheus:v2.17.2@sha256:42d2395cd7192cac9c787b517c4c276a184e5512da793cce9db8ee626f2cbde1
+    - docker.io/apachepulsar/pulsar-manager:v0.1.0@sha256:b341ef76a8521badbf6a0b235558cf2b72bd92cec5344c051243b1687efa3f91
+    - docker.io/apachepulsar/pulsar-all:2.7.2@sha256:96d56238cbf57379b4d09f53e73bfb323787a6d79b36044276a515bb031c2218
+    - docker.io/cruise/k-rail:release-v3.5.1@sha256:8604fe83dd22fc269c4f954d97152fe536e8d0ec90595f984a3cf6432d10239b

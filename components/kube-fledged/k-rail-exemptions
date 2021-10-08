@@ -1,0 +1,17 @@
+data:
+  config.yml: |
+    - exempt_policies:
+      - '*'
+      group: '*'
+      namespace: kube-system
+      resource_name: '*'
+      username: '*'
+    - exempt_policies:
+      - "pod_no_root_user"
+      - "pod_trusted_repository"
+      - "pod_no_bind_mounts"
+      - "pod_immutable_reference"
+      group: '*'
+      namespace: kube-fledged
+      resource_name: '*'
+      username: '*'
