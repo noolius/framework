@@ -7,6 +7,18 @@ data:
       resource_name: '*'
       username: '*'
     - exempt_policies:
+      - '*'
+      group: '*'
+      namespace: linkerd
+      resource_name: '*'
+      username: '*'
+    - exempt_policies:
+      - '*'
+      group: '*'
+      namespace: linkerd-viz
+      resource_name: '*'
+      username: '*'
+    - exempt_policies:
       - "pod_no_root_user"
       - "pod_trusted_repository"
       - "pod_no_bind_mounts"
