@@ -163,6 +163,10 @@
           owner: vagrant
           group: vagrant
           mode: '0750'
+      - name: Checking whether to create K8s infra
+        ansible.builtin.stat:
+          path: /vagrant/text
+        register: existing_k8s_token
       - name: Creating K8s manifests with api-server on internal (to-VMs) LAN
         ansible.builtin.shell: >
           nohup /usr/bin/kubeadm init --apiserver-advertise-address={{ apiserver | quote }}
@@ -170,10 +174,14 @@
         args:
           executable: /bin/bash
           warn: false
+        when: not existing_k8s_token.stat.exists
+        register: create_k8s_infra
       - name: Waiting for /v/lib/kubelet/kubeadm-flags.env
         wait_for:
           path: /var/lib/kubelet/kubeadm-flags.env
           search_regex: pause
+        when: create_k8s_infra is succeeded
+        register: kubeadm_flags_done
       - name: Replacing KUBELET_EXTRA_ARGS
         lineinfile:
           line: >
@@ -183,23 +191,31 @@
           regexp: '^KUBELET_KUBEADM_ARGS='
           path: /var/lib/kubelet/kubeadm-flags.env
           backup: true
+        when: kubeadm_flags_done is succeeded
+        register: kubelet_extra_args
       - name: Creating /opt/cni/
         file:
           path: /opt/cni
           state: directory
           mode: '0755'
+        when: kubelet_extra_args is succeeded
       - name: Creating /opt/cni/bin symlink for kubelet
         file:
           src: /usr/libexec/cni
           state: link
           dest: /opt/cni/bin
+        when: kubelet_extra_args is succeeded
       - name: Restarting kubelet
         service:
           name: kubelet
           state: restarted
+        when: kubelet_extra_args is succeeded
+        register: kubelet_restarted
       - name: Waiting for /e/kubernetes/admin.conf
         wait_for:
           path: /etc/kubernetes/admin.conf
+        when: kubelet_restarted is succeeded
+        register: adminconf
       - name: Copying KUBECONFIG for root user
         copy:
           src: /etc/kubernetes/admin.conf
@@ -208,6 +224,8 @@
           group: root
           mode: '0600'
           remote_src: true
+        when: adminconf is succeeded
+        register: root_config
       - name: Copying KUBECONFIG for vagrant user
         copy:
           src: /etc/kubernetes/admin.conf
@@ -216,6 +234,7 @@
           group: vagrant
           mode: '0600'
           remote_src: true
+        when: adminconf is succeeded
       - name: Writing StorageClass manifest
         copy:
           content: '{{ storageclass_manifest }}'
@@ -242,10 +261,13 @@
           remote_src: true
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
+        when: root_config is succeeded
       - name: Adding Crossplane's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add crossplane-stable https://charts.crossplane.io/stable
+        when: root_config is succeeded
       - name: Updating Helm repos
         ansible.builtin.command: /usr/local/bin/helm repo update
+        when: root_config is succeeded
       - name: Waiting for api-server to become available
         wait_for:
           port: '{{ k8s_serviceport | quote }}'

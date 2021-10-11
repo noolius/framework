@@ -1,4 +1,3 @@
 warn_list:
   - yaml
-  - no-changed-when
   - var-spacing
