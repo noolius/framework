@@ -15,9 +15,9 @@ spec:
     - docker.io/calico/cni:v3.20.2@sha256:3dae26de7388ff3c124b9abd7e8d12863887391f23549c4aebfbfa20cc0700a5
     - docker.io/calico/pod2daemon-flexvol:v3.20.2@sha256:4514cc1b2f7536fe1d514fad8a2c46103382243bb9db5ea2d0063fcd2001e8f7
     - docker.io/calico/kube-controllers:v3.20.2@sha256:985620c7a0cf75ebf7b23960dda7594fe40cf00bc2ef59c935c581b1b4fc4c63
-    - quay.io/cilium/cilium:v1.11.0-rc0@sha256:95fa7c285f525cf1cf53921d39fccaede425e52e94033015ffa046ddb0edf461
-    - quay.io/cilium/operator-generic:v1.11.0-rc0@sha256:587a2c33c698b4900493e31aaded714480be7bde54ed9ce8e41d05a02af9ade5
-    - quay.io/cilium/hubble-relay:v1.11.0-rc0@sha256:6701a9d2368f02ba866c5e790b9df51920da1756de619701807151be1c6d8568
+    - quay.io/cilium/cilium:v1.10.5@sha256:0612218e28288db360c63677c09fafa2d17edda4f13867bcabf87056046b33bb
+    - quay.io/cilium/operator-generic:v1.10.5@sha256:2d2f730f219d489ff0702923bf24c0002cd93eb4b47ba344375566202f56d972
+    - quay.io/cilium/hubble-relay:v1.10.5@sha256:5d83c9d674e01c449f7fa65f176f2bde6568498acb726f5fe25cc12149c216c5
     - quay.io/cilium/hubble-ui:v0.8.2@sha256:a6f80b0517a5266783d619ae14d846d4fbb692f6aaff37804fc8851bf1095a30
     - quay.io/cilium/hubble-ui-backend:v0.8.2@sha256:43c1e824751639b1df9460e5c5d5a3fd732f834bb96b3012a4164eeee457cbb6
     - docker.io/envoyproxy/envoy:v1.18.4@sha256:e5c2bb2870d0e59ce917a5100311813b4ede96ce4eb0c6bfa879e3fbe3e83935
