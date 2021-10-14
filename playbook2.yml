@@ -344,7 +344,7 @@
         register: chain_cilium
       - name: Deploying Cilium using its Helm chart
         ansible.builtin.command: >
-          /usr/local/bin/helm install cilium cilium/cilium --version 1.10.4 --namespace kube-system
+          /usr/local/bin/helm install cilium cilium/cilium --version 1.10.5 --namespace kube-system
           --set k8sServiceHost={{ apiserver | quote }} --set k8sServicePort={{ k8s_serviceport | quote }}
           --set cni.chainingMode=generic-veth --set cni.customConf=true --set cni.configMap=cni-configuration
           --set tunnel=disabled --set enableIPv4Masquerade=false --set enableIdentityMark=false
