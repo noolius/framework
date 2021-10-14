@@ -54,7 +54,7 @@
           url: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
           dest: /root/cilium-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:fafd695f029f4406304eb0c951d21cc3074f3c1e53fbc198fe521ee16797c095
+          checksum: sha256:727a51e0f6751f5397078e24333767f9e989ba7c3dfe528ada0717efa7253467
       - name: Installing Cilium cli
         unarchive:
           src: /root/cilium-linux-amd64.tar.gz
@@ -212,7 +212,9 @@
             - socat
             - jq
             - kubelet
+            - kubelet-openrc
             - kubeadm
+            - kubeadm-openrc
             - cri-tools
           state: latest
       - name: Checking whether to configure salt-minion
@@ -278,6 +280,9 @@
       - name: Adding cluster packages specific to control-planes
         community.general.apk:
           name:
+            - etcd
+            - etcd-openrc
+            - etcd-ctl
             - kubectl
             - patch
             - yq
