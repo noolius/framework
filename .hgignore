@@ -2,6 +2,7 @@
 calico
 cf
 cilium
+components/pki
 flannel
 helm
 .idea
