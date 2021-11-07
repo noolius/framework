@@ -214,7 +214,6 @@
             - kubelet
             - kubelet-openrc
             - kubeadm
-            - kubeadm-openrc
             - cri-tools
           state: latest
       - name: Checking whether to configure salt-minion
