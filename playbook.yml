@@ -48,7 +48,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:7b32875044fdc5fcfbdf6a8d7525e932d1fae1a4c99acdfbfb2fb9856a611524
+          checksum: sha256:c30bbc3d3793121472df554e79deca2ea5f31b40461f0b10068b1afc55cb2d62
       - name: Downloading Cilium cli
         get_url:
           url: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
