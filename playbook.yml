@@ -27,12 +27,12 @@
           remote_src: true
       - name: Downloading and installing kapp cli
         get_url:
-          url: https://github.com/vmware-tanzu/carvel-kapp/releases/download/v0.37.0/kapp-linux-amd64
+          url: https://github.com/vmware-tanzu/carvel-kapp/releases/download/v0.42.0/kapp-linux-amd64
           dest: /usr/local/bin/kapp
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:f845233deb6c87feac7c82d9b3f5e03ced9a4672abb1a14d4e5b74fe53bc4538
+          checksum: sha256:5d5c4274a130f2fd5ad11ddd8fb3e0f647c8598ba25711360207fc6eab72f6be
       - name: Downloading and installing Linkerd2 cli
         get_url:
           url: https://github.com/linkerd/linkerd2/releases/download/edge-21.11.1/linkerd2-cli-edge-21.11.1-linux-amd64
