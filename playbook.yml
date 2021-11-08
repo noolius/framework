@@ -83,16 +83,22 @@
           dest: /root/thanos-0.23.1.linux-amd64.tar.gz
           mode: '0400'
           checksum: sha256:86afe3f4fce5201b87b3ed7cc78485f564bd1248ba7f3a6d3a73784fcdd0d449
-      - name: Installing Thanos cli
+      - name: Extracting Thanos cli
         unarchive:
           src: /root/thanos-0.23.1.linux-amd64.tar.gz
-          dest: /usr/local/bin
+          dest: /root
+          mode: '0400'
+          remote_src: true
+          extra_opts:
+          - thanos-0.23.1.linux-amd64/thanos
+      - name: Installing Thanos cli
+        copy:
+          src: /root/thanos-0.23.1.linux-amd64/thanos
+          dest: /usr/local/bin/thanos
           owner: root
           group: root
           mode: '0555'
           remote_src: true
-          extra_opts:
-          - thanos-0.23.1.linux-amd64/thanos
       - name: Downloading cf v7 cli
         get_url:
           url: https://s3-us-west-1.amazonaws.com/v7-cf-cli-releases/releases/v7.3.0/cf7-cli_7.3.0_linux_x86-64.tgz
