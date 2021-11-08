@@ -20,13 +20,13 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
     vb.memory = "4096"
-    vb.cpus = "4"
+    vb.cpus = "2"
   end
 
   # Provisioning
   config.vm.provision "shell", inline: <<-SHELL
     apk update
-    apk add python3 tar gzip bzip2
+    apk add python2 tar gzip bzip2
   SHELL
   config.vm.provision "ansible" do |ansible|
     ansible.groups = {

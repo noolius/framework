@@ -23,7 +23,7 @@ Bash scripts and Ansible playbooks to proof-of-concept a local Alpine Linux clus
 - 25+ GiB disk
 - systemd-based
 - VirtualBox 6.1+
-- Ansible 2.10.7+ with ``community.general`` and ``ansible.posix`` galaxy collections
+- Ansible (-base 2.10.7+, << 2.11; see Caveats) with ``community.general`` and ``ansible.posix`` galaxy collections
 - Vagrant 2.2+ with [``vagrant-reload``](https://github.com/aidanns/vagrant-reload) and [``vagrant-sshfs``](https://github.com/dustymabe/vagrant-sshfs) plugins
 
 (Of course, you also can modify the scripts and playbooks with replacements for systemd and VirtualBox, thereby rendering it viable on myriad platforms.)
@@ -60,7 +60,9 @@ versus
 
 ## Caveats
 
-The URLs in the playbooks may break.
+Versioned URIs in the Ansible playbooks should be OK, but "latest" URLs will break since they're associated with SHA256sums.
+
+If using Mitogen v0.3.0 with Ansible (see [this note](https://mitogen.networkgenomics.com/ansible_detailed.html) and [these GitHub tags](https://github.com/mitogen-hq/mitogen/tags)), use the python2 Alpine apk (instead of python3) in the shell provision section of ``Vagrantfile``.
 
 Cilium is used in Calico-chaining mode and not as a kube-proxy replacement, so expect several of the ``cilium connectivity test``s to fail.
 
