@@ -235,7 +235,7 @@
           path: /vagrant/no_salt
         register: test_contents
       - name: Getting fingerprint of salt server
-        ansible.builtin.command: cat pub_fingerprint
+        ansible.builtin.command: cat /vagrant/pub_fingerprint
         register: fingerprint
         when: not test_contents.stat.exists
       - name: Creating /e/salt/minion.d
