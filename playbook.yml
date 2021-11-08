@@ -54,7 +54,7 @@
           url: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
           dest: /root/cilium-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:727a51e0f6751f5397078e24333767f9e989ba7c3dfe528ada0717efa7253467
+          checksum: sha256:64cd223cccb3f18731e96d9be5920ebcd2129a69aec6486d236c183de53686a5
       - name: Installing Cilium cli
         unarchive:
           src: /root/cilium-linux-amd64.tar.gz
@@ -79,20 +79,20 @@
           remote_src: true
       - name: Downloading Thanos cli
         get_url:
-          url: https://github.com/thanos-io/thanos/releases/download/v0.22.0/thanos-0.22.0.linux-amd64.tar.gz
-          dest: /root/thanos-0.22.0.linux-amd64.tar.gz
+          url: https://github.com/thanos-io/thanos/releases/download/v0.23.1/thanos-0.23.1.linux-amd64.tar.gz
+          dest: /root/thanos-0.23.1.linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:0b930bbd7636aa9377b0ba8e8f01bd7affd79162abe798b2ed042b26d7b46df8
+          checksum: sha256:86afe3f4fce5201b87b3ed7cc78485f564bd1248ba7f3a6d3a73784fcdd0d449
       - name: Installing Thanos cli
         unarchive:
-          src: /root/thanos-0.22.0.linux-amd64.tar.gz
+          src: /root/thanos-0.23.1.linux-amd64.tar.gz
           dest: /usr/local/bin
           owner: root
           group: root
           mode: '0555'
           remote_src: true
           extra_opts:
-          - thanos-0.22.0.linux-amd64/thanos
+          - thanos-0.23.1.linux-amd64/thanos
       - name: Downloading cf v7 cli
         get_url:
           url: https://s3-us-west-1.amazonaws.com/v7-cf-cli-releases/releases/v7.3.0/cf7-cli_7.3.0_linux_x86-64.tgz
@@ -112,12 +112,12 @@
           - cf
       - name: Downloading kubectl cert-manager
         get_url:
-          url: https://github.com/jetstack/cert-manager/releases/download/v1.5.3/kubectl-cert_manager-linux-amd64.tar.gz
+          url: https://github.com/jetstack/cert-manager/releases/download/v1.6.1/kubectl-cert_manager-linux-amd64.tar.gz
           dest: /root/kubectl-cert_manager-linux-amd64.tar.gz
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:58fb65e5b38e63c664b9219a5b1f555727cde2bc7e7f495cfe00ecb078da4b44
+          checksum: sha256:cf9cb0b1020cc437d431805be4baf2bc9de6de0b06e7821b0dd7d5d598cc1f36
       - name: Installing kubectl cert-manager
         unarchive:
           src: /root/kubectl-cert_manager-linux-amd64.tar.gz
@@ -130,15 +130,15 @@
           - kubectl-cert_manager
       - name: Downloading Kustomize
         get_url:
-          url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.3.0/kustomize_v4.3.0_linux_amd64.tar.gz
-          dest: /root/kustomize_v4.3.0_linux_amd64.tar.gz
+          url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.4.0/kustomize_v4.4.0_linux_amd64.tar.gz
+          dest: /root/kustomize_v4.4.0_linux_amd64.tar.gz
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:d34818d2b5d52c2688bce0e10f7965aea1a362611c4f1ddafd95c4d90cb63319
+          checksum: sha256:bf3a0d7409d9ce6a4a393ba61289047b4cb875a36ece1ec94b36924a9ccbaa0f
       - name: Installing Kustomize
         unarchive:
-          src: /root/kustomize_v4.3.0_linux_amd64.tar.gz
+          src: /root/kustomize_v4.4.0_linux_amd64.tar.gz
           dest: /usr/local/bin
           owner: root
           group: root
