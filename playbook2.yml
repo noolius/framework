@@ -318,7 +318,7 @@
       - name: Waiting for Calico to settle (grace 59s)
         pause:
           seconds: 59
-      - name: Applying WireGuard(tm) enciphering for in-cluster pod traffic
+      - name: Applying WireGuard(tm) enciphering for inter-node traffic
         ansible.builtin.command: /usr/local/bin/calicoctl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
         when: update_calico_ip_autodetection_pre_wg is succeeded
         register: apply_wg
