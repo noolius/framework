@@ -54,7 +54,7 @@
           url: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
           dest: /root/cilium-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:64cd223cccb3f18731e96d9be5920ebcd2129a69aec6486d236c183de53686a5
+          checksum: sha256:a36e81739af622a8d8c7f3fdcdcf67a12468c6abeac5d3fa4d93ca2470622cdb
       - name: Installing Cilium cli
         unarchive:
           src: /root/cilium-linux-amd64.tar.gz
