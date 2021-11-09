@@ -66,7 +66,7 @@ If using Mitogen v0.3.0 with Ansible (see [this note](https://mitogen.networkgen
 
 Cilium is used in Calico-chaining mode and not as a kube-proxy replacement, so expect several of the ``cilium connectivity test``s to fail.
 
-Calico is configured to encipher intra-cluster pod traffic using WireGuard(tm).
+Calico is configured to encipher intra-cluster node traffic using WireGuard(tm).
 
 ## Known issues
 
@@ -75,3 +75,5 @@ Calico is configured to encipher intra-cluster pod traffic using WireGuard(tm).
 ## License
 
 Items in this repository are released into the public domain, AKA "The Unlicense," as per https://choosealicense.com/licenses/unlicense/
+
+"[WireGuard](https://www.wireguard.com/)" is a registered trademark of Jason A. Donenfeld; and all others, of their respective holders.
