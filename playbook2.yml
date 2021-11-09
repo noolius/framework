@@ -351,6 +351,36 @@
           --set hubble.relay.enabled=true --set hubble.ui.enabled=true
         when: chain_cilium is succeeded
         register: deploy_cilium
+      - name: Waiting for /u/libexec/cni/calico*
+        wait_for:
+          path: /usr/libexec/cni/calico
+        when: update_calico_ip_autodetection is succeeded
+        register: old_calico_cni_plugin_exists
+      - name: Checking whether to copy precompiled Calico CNI plugin (Go/musl)
+        ansible.builtin.stat:
+          path: /vagrant/calico
+        when: old_calico_cni_plugin_exists is succeeded
+        register: precomplied_calico_cni_plugin
+      - name: Copying precompiled Calico CNI plugin (Go/musl)
+        copy:
+          src: /vagrant/calico
+          dest: /usr/libexec/cni/calico
+          owner: root
+          group: root
+          mode: '2755'
+          remote_src: true
+          checksum: 5189becde8caf857f79ded2aa87b2dfbb6ce8ef8
+        when: precomplied_calico_cni_plugin.stat.exists
+      - name: Copying precompiled Calico CNI plugin (Go/musl) to IPAM
+        copy:
+          src: /vagrant/calico
+          dest: /usr/libexec/cni/calico-ipam
+          owner: root
+          group: root
+          mode: '2755'
+          remote_src: true
+          checksum: 5189becde8caf857f79ded2aa87b2dfbb6ce8ef8
+        when: precomplied_calico_cni_plugin.stat.exists
       - name: Waiting for Cilium deployment to settle (grace 35s)
         pause:
           seconds: 35
@@ -465,3 +495,32 @@
         service:
           name: kubelet
           state: restarted
+      - name: Waiting for /u/libexec/cni/calico*
+        wait_for:
+          path: /usr/libexec/cni/calico
+        register: old_calico_cni_plugin_exists
+      - name: Checking whether to copy precompiled Calico CNI plugin (Go/musl)
+        ansible.builtin.stat:
+          path: /vagrant/calico
+        when: old_calico_cni_plugin_exists is succeeded
+        register: precomplied_calico_cni_plugin
+      - name: Copying precompiled Calico CNI plugin (Go/musl)
+        copy:
+          src: /vagrant/calico
+          dest: /usr/libexec/cni/calico
+          owner: root
+          group: root
+          mode: '2755'
+          remote_src: true
+          checksum: 5189becde8caf857f79ded2aa87b2dfbb6ce8ef8
+        when: precomplied_calico_cni_plugin.stat.exists
+      - name: Copying precompiled Calico CNI plugin (Go/musl) to IPAM
+        copy:
+          src: /vagrant/calico
+          dest: /usr/libexec/cni/calico-ipam
+          owner: root
+          group: root
+          mode: '2755'
+          remote_src: true
+          checksum: 5189becde8caf857f79ded2aa87b2dfbb6ce8ef8
+        when: precomplied_calico_cni_plugin.stat.exists
