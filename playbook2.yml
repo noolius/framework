@@ -25,6 +25,10 @@
           name: local
         provisioner: kubernetes.io/no-provisioner
         volumeBindingMode: WaitForFirstConsumer
+      bash_profile: |
+        alias k='kubectl'
+        alias ns='kubens'
+        alias ctx='kubectx'
       persistentvolume1_manifest: |
         apiVersion: v1
         kind: PersistentVolume
@@ -235,6 +239,14 @@
           mode: '0600'
           remote_src: true
         when: adminconf is succeeded
+      - name: Populating kube* aliases in ~vagrant/.bash_profile
+        copy:
+          content: '{{ bash_profile }}'
+          dest: /home/vagrant/.bash_profile
+          owner: vagrant
+          group: vagrant
+          mode: '0600'
+          remote_src: true
       - name: Writing StorageClass manifest
         copy:
           content: '{{ storageclass_manifest }}'
