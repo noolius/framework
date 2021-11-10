@@ -367,7 +367,7 @@
           dest: /usr/libexec/cni/calico
           owner: root
           group: root
-          mode: '2755'
+          mode: '4755'
           remote_src: true
           checksum: 5189becde8caf857f79ded2aa87b2dfbb6ce8ef8
         when: precomplied_calico_cni_plugin.stat.exists
@@ -377,7 +377,7 @@
           dest: /usr/libexec/cni/calico-ipam
           owner: root
           group: root
-          mode: '2755'
+          mode: '4755'
           remote_src: true
           checksum: 5189becde8caf857f79ded2aa87b2dfbb6ce8ef8
         when: precomplied_calico_cni_plugin.stat.exists
