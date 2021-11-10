@@ -351,6 +351,10 @@
           --set hubble.relay.enabled=true --set hubble.ui.enabled=true
         when: chain_cilium is succeeded
         register: deploy_cilium
+      - name: Waiting for Cilium deployment to settle (grace 35s)
+        pause:
+          seconds: 35
+        when: deploy_cilium is succeeded
       - name: Waiting for /u/libexec/cni/calico*
         wait_for:
           path: /usr/libexec/cni/calico
@@ -381,10 +385,6 @@
           remote_src: true
           checksum: 5189becde8caf857f79ded2aa87b2dfbb6ce8ef8
         when: precomplied_calico_cni_plugin.stat.exists
-      - name: Waiting for Cilium deployment to settle (grace 35s)
-        pause:
-          seconds: 35
-        when: chain_cilium is succeeded
       - name: Running Linkerd pre-install check
         ansible.builtin.command: /usr/local/bin/linkerd check --pre
         register: precheck_linkerd
