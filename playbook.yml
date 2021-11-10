@@ -243,7 +243,7 @@
           path: /etc/salt/minion.d
           state: directory
           owner: root
-          group: salt
+          group: root
           mode: '0750'
         when: not test_contents.stat.exists
       - name: Seeding salt-master IPv4
@@ -251,7 +251,7 @@
           content: "master: '{{ ansible_default_ipv4.gateway }}'"
           dest: /etc/salt/minion.d/master.conf
           owner: root
-          group: salt
+          group: root
           mode: '0440'
         when: not test_contents.stat.exists
       - name: Seeding salt-master key
@@ -259,7 +259,7 @@
           content: "master_finger: '{{ fingerprint.stdout }}'"
           dest: /etc/salt/minion.d/master_finger.conf
           owner: root
-          group: salt
+          group: root
           mode: '0440'
         when: not test_contents.stat.exists
       - name: Creating OpenRC script to mount --make-rshared /
