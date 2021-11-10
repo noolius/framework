@@ -230,6 +230,14 @@
           remote_src: true
         when: adminconf is succeeded
         register: root_config
+      - name: Populating kube* aliases in ~root/.bash_profile
+        copy:
+          content: '{{ bash_profile }}'
+          dest: /root/.bash_profile
+          owner: root
+          group: root
+          mode: '0600'
+          remote_src: true
       - name: Copying KUBECONFIG for vagrant user
         copy:
           src: /etc/kubernetes/admin.conf
