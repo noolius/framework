@@ -62,7 +62,7 @@ versus
 
 Versioned URIs in the Ansible playbooks should be OK, but "latest" URLs will break since they're associated with SHA256sums.
 
-If using Mitogen v0.3.0 with Ansible (see [this note](https://mitogen.networkgenomics.com/ansible_detailed.html) and [these GitHub tags](https://github.com/mitogen-hq/mitogen/tags)), use the python2 Alpine apk (instead of python3) in the shell provision section of ``Vagrantfile``.
+If using Mitogen v0.3.0 on the host with Ansible (see [this note](https://mitogen.networkgenomics.com/ansible_detailed.html) and [these GitHub tags](https://github.com/mitogen-hq/mitogen/tags)), use the python2 Alpine apk (instead of python3) in the shell provision section of ``Vagrantfile``. On the host, PyPy 7.3.7 do not work with Mitogen; you'll need to use CPython (tested with 3.10).
 
 Cilium is used in Calico-chaining mode and not as a kube-proxy replacement, so expect several of the ``cilium connectivity test``s to fail.
 
