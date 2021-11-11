@@ -8,6 +8,7 @@ helm
 .idea
 kapp
 kcat
+k-rail
 kube
 linkerd
 linux-amd64
