@@ -424,6 +424,29 @@
         ansible.builtin.command: /usr/local/bin/linkerd check config
         register: validating_config_linkerd
         when: installing_config_stage_linkerd is succeeded
+      - name: Creating namespaces for k-rail & Crossplane
+        ansible.builtin.command: /usr/bin/kubectl create ns "{{ item }}"
+        loop:
+          - crossplane-system
+          - k-rail
+        when: installing_control_plane_linkerd.rc == 0
+        register: created_ns_k_rail_crossplane
+      - name: Annotating k-rail & Crossplane namespaces for Linkerd2 auto-injection
+        ansible.builtin.command: /usr/bin/kubectl annotate ns "{{ item }}" linkerd.io/inject=enabled
+        loop:
+          - crossplane-system
+          - k-rail
+        when: created_ns_k_rail_crossplane is succeeded
+      - name: Defensively labeling kube-system, k-rail, linkerd* & crossplane namespaces not to break functionality
+        ansible.builtin.command: /usr/bin/kubectl label namespace "{{ item }}" k-rail/ignore=true
+        loop:
+          - kube-system
+          - k-rail
+          - linkerd
+          - linkerd-viz
+          - crossplane-system
+        when: created_ns_k_rail_crossplane is succeeded and ok_linkerd_check is succeeded
+        register: defensively_labeled_ns
       - name: Installing Linkerd control-plane
         ansible.builtin.shell: >
           set -o pipefail && /usr/local/bin/linkerd install --ha control-plane | /usr/bin/kubectl apply -f -
@@ -440,13 +463,6 @@
         ansible.builtin.command: /usr/local/bin/linkerd check
         when: installing_control_plane_linkerd.rc == 0
         register: ok_linkerd_check
-      - name: Creating namespaces for k-rail & Crossplane
-        ansible.builtin.command: /usr/bin/kubectl create ns "{{ item }}"
-        loop:
-          - crossplane-system
-          - k-rail
-        when: installing_control_plane_linkerd.rc == 0
-        register: created_ns_k_rail_crossplane
       - name: Deploying Crossplane using its Helm chart
         ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
         when: installing_control_plane_linkerd.rc == 0
@@ -459,16 +475,6 @@
       - name: Registering PersistentVolume 2 (workers)
         ansible.builtin.command: /usr/bin/kubectl create -f /root/pv2_manif
         when: apiserver_avail is succeeded
-      - name: Defensively labeling kube-system, k-rail, linkerd* & crossplane namespaces not to break functionality
-        ansible.builtin.command: /usr/bin/kubectl label namespace "{{ item }}" k-rail/ignore=true
-        loop:
-          - kube-system
-          - k-rail
-          - linkerd
-          - linkerd-viz
-          - crossplane-system
-        when: created_ns_k_rail_crossplane is succeeded and ok_linkerd_check is succeeded
-        register: defensively_labeled_ns
       - name: Installing k-rail
         ansible.builtin.command: /usr/local/bin/helm install k-rail k-rail/k-rail --namespace k-rail
         when: defensively_labeled_ns is succeeded
