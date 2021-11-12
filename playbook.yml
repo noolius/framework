@@ -160,6 +160,14 @@
           remote_src: true
           extra_opts:
           - kustomize
+      - name: Downloading k-rail
+        get_url:
+          url: https://github.com/cruise-automation/k-rail/archive/refs/tags/v3.6.1.tar.gz
+          dest: /root/v3.6.1.tar.gz
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:dc6ba54b55ff5d0f417f7a613fa1b93999ad4078095d62c33e75474af9068aa1
   - name: Provisioning Alpine 3.14 K8s (all)
     hosts: "*"
     become: true
