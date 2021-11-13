@@ -464,6 +464,17 @@
           - /root/sc_manif
           - /root/pv1_manif
           - /root/pv2_manif
+      - name: Adding k-rail's Helm charts
+        ansible.builtin.command: /usr/local/bin/helm repo add k-rail https://cruise-automation.github.io/k-rail/
+        when: root_config is succeeded
+        register: add_k_rail_helm
+      - name: Updating Helm repos
+        ansible.builtin.command: /usr/local/bin/helm repo update
+        when: add_k_rail_helm.rc == 0
+        register: updated_helm_repos
+      - name: Deploying k-rail using its Helm chart
+        ansible.builtin.command: /usr/local/bin/helm install k-rail k-rail/k-rail --namespace k-rail
+        when: updated_helm_repos.rc == 0
   - name: Provisioning Alpine 3.14 K8s (workers, post-first reboot)
     hosts: workers
     become: true
