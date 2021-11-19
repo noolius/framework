@@ -43,7 +43,7 @@
           checksum: sha256:7b59049e7457371f09c9ba0ef2c0b61621fc78ff2a88cc8617f627a3d4498d17
       - name: Downloading and installing Crossplane cli
         get_url:
-          url: https://releases.crossplane.io/stable/current/bin/linux_amd64/crank
+          url: https://releases.crossplane.io/stable/v1.5.0/bin/linux_amd64/crank
           dest: /usr/local/bin/kubectl-crossplane
           owner: root
           group: root
