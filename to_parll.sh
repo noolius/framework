@@ -9,7 +9,6 @@ case "${1}" in
     fi
     ;;
   provision)
-    sudo -l >/dev/null && \
     if test -f vagrant_loc -a -r vagrant_loc; then
       x=$(. vagrant_loc && echo $v) && \
       rm -f text && \
@@ -18,7 +17,8 @@ case "${1}" in
          touch no_salt;
       else
          rm -f no_salt
-         sudo salt-key -F master | awk '/pub/{print $2}' > pub_fingerprint;
+         sudo -K && sudo salt-key -F master | awk '/pub/{print $2}' > pub_fingerprint
+	 sudo -K;
       fi && \
       $x status | awk '/not created/{gsub(/ $/, "", $0);print $1}' | \
       xargs -P4 -I {} $x up --provision {};
