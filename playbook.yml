@@ -164,6 +164,9 @@
     hosts: "*"
     become: true
     vars:
+      doas_d_conf: |
+        permit nopass keepenv setenv { PATH } root as root
+        permit nopass keepenv setenv { PATH } vagrant as root
       more_modules: |
         overlay
         br_netfilter
@@ -186,6 +189,14 @@
           before kubelet
         }
     tasks:
+      - name: Configuring /e/doas.conf
+        copy:
+          content: "{{ doas_d_conf }}"
+          dest: /etc/doas.conf
+          owner: root
+          group: root
+          mode: '0600'
+          backup: true
       - name: Configuring additional kernel modules to load
         copy:
           content: "{{ more_modules }}"
@@ -229,6 +240,7 @@
             - kubelet-openrc
             - kubeadm
             - cri-tools
+            - doas
           state: latest
       - name: Checking whether to configure salt-minion
         ansible.builtin.stat:
