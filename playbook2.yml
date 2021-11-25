@@ -296,7 +296,7 @@
         get_url:
           url: https://docs.projectcalico.org/archive/v3.21/manifests/calico.yaml
           dest: /root/calico.yaml
-          checksum: sha256:3a244fa41aec58752ecc4dd432f0143c6a01de9260ba05d59ee586688ba5a39b
+          checksum: sha256:980eb9d23491a23e936868fbcdfdbff5cf7ffa606a3c6fa3a53020823f5440ec
       - name: Writing unified GNU diff of Calico networking manifest
         copy:
           content: '{{ calico_manifest_diff }}'
