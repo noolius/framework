@@ -324,12 +324,12 @@
         register: redeploy_calico
       - name: Installing calicoctl on control-plane
         get_url:
-          url: https://github.com/projectcalico/calicoctl/releases/download/v3.21.0/calicoctl-linux-amd64
+          url: https://github.com/projectcalico/calicoctl/releases/download/v3.21.1/calicoctl-linux-amd64
           dest: /usr/local/bin/calicoctl
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:7533b33d98c8e3f035a22537c7885c1bba64dcb8107fd6bb83286dc6319bbd59
+          checksum: sha256:a3383ea8366e58180c0abac2761cdbef3c7a5332361bca083fdbab727d8ea8d5
         when: got_calico_manifest is succeeded
       - name: Updating Calico IP autodetection
         ansible.builtin.command: /usr/bin/kubectl set env ds/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=eth1
