@@ -429,7 +429,7 @@
           - k-rail
         when: created_ns_k_rail_crossplane is succeeded
       - name: Defensively labeling kube-system, k-rail, linkerd* & crossplane namespaces not to break functionality
-        ansible.builtin.command: /usr/bin/kubectl label namespace "{{ item }}" k-rail/ignore=true
+        ansible.builtin.command: /usr/bin/kubectl label ns "{{ item }}" k-rail/ignore=true
         loop:
           - kube-system
           - k-rail
@@ -438,6 +438,9 @@
           - crossplane-system
         when: created_ns_k_rail_crossplane is succeeded and validating_config_linkerd.rc == 0
         register: defensively_labeled_ns
+      - name: Labeling ns/kube-system as per Linkerd2 HA best practice
+        ansible.builtin.command: /usr/bin/kubectl label ns/kube-system config.linkerd.io/admission-webhooks=disabled
+        when: validating_config_linkerd.rc == 0
       - name: Installing Linkerd control-plane
         ansible.builtin.shell: >
           set -o pipefail && /usr/local/bin/linkerd install --ha control-plane | /usr/bin/kubectl apply -f -
