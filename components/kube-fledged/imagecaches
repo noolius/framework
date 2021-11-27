@@ -5,6 +5,7 @@ spec:
     - cr.l5d.io/linkerd/proxy:edge-21.11.2@sha256:54922792bc9339f0a8ea7a796b205a729b8a47f7373b3a4add65edb17cfd2151
     - cr.l5d.io/linkerd/proxy-init:v1.5.1@sha256:bd87b4564ebed97b9cee7e16a0444adb0019be2f3fd406d42f3cfbe3d3e19bac
     - cr.l5d.io/linkerd/controller:edge-21.11.2@sha256:7b52fcbfef091ed63de455d3dd1d459c67cc56f6512b37fa0e75fed1d45116ef
+    - ghcr.io/kyverno/kyverno:v1.5.2-rc1@sha256:a13ec87d24cf67f21dc69d47d2d87b5d24903365c6e42ba9199dad04e54f462b
     - docker.io/crossplane/crossplane:v1.5.0@sha256:6291932f4e9e39ac78be60cddc96f598fcc739ff0bfe67afed4287544a8d4611
     - docker.elastic.co/elasticsearch/elasticsearch:7.15.0@sha256:6ae227c688e05f7d487e0cfe08a5a3681f4d60d006ad9b5a1f72a741d6091df1
     - docker.elastic.co/eck/eck-operator:1.8.0@sha256:61d809705b3d65710d12e78a7e76cc2ff195fbd3bb3986d4df2fb80ebd29956a
@@ -25,4 +26,3 @@ spec:
     - docker.io/prom/prometheus:v2.17.2@sha256:42d2395cd7192cac9c787b517c4c276a184e5512da793cce9db8ee626f2cbde1
     - docker.io/apachepulsar/pulsar-manager:v0.1.0@sha256:b341ef76a8521badbf6a0b235558cf2b72bd92cec5344c051243b1687efa3f91
     - docker.io/apachepulsar/pulsar-all:2.7.2@sha256:96d56238cbf57379b4d09f53e73bfb323787a6d79b36044276a515bb031c2218
-    - docker.io/cruise/k-rail:release-v3.6.1@sha256:6e49f9b525a4a358e430c5b0a9c7bd3b5454d3a6361e741443b88ac6261dd418
