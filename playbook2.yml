@@ -16,6 +16,7 @@
     hosts: control_planes
     become: true
     vars:
+      kyverno_image_tag: v1.5.2-rc1
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
       storageclass_manifest: |
@@ -261,7 +262,7 @@
           dest: /root/sc_manif
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Writing PersistentVolume 1 manifest
         copy:
@@ -269,7 +270,7 @@
           dest: /root/pv1_manif
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Writing PersistentVolume 2 manifest
         copy:
@@ -277,7 +278,7 @@
           dest: /root/pv2_manif
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
@@ -303,7 +304,7 @@
           dest: /root/calico.yaml.diff
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Modifying Calico manifest
         ansible.posix.patch:
@@ -356,7 +357,7 @@
           dest: /root/cni_chaining
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Chaining Cilium on top of Calico
         ansible.builtin.command: /usr/bin/kubectl apply -f /root/cni_chaining
@@ -458,9 +459,42 @@
           - /root/sc_manif
           - /root/pv1_manif
           - /root/pv2_manif
+      - name: Downloading Kyverno pubsign
+        get_url:
+          url: https://github.com/kyverno/kyverno/blob/main/cosign.pub
+          dest: /root/cosign.pub
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:b512bf134cf91fba68beae4e7e93b755d194b83ddf5e56b215e931a6c1a979ae
+        register: downloaded_kyverno_pubsign
+      - name: Verifying Kyverno CR images
+        ansible.builtin.command: /usr/local/bin/cosign verify --key=/root/cosign.pub ghcr.io/kyverno/kyverno:{{ kyverno_image_tag | quote }}
+        when: downloaded_kyverno_pubsign is succeeded
+        register: kyverno_image_tag_cosign
+      - name: Downloading Kyverno cli
+        get_url:
+          url: https://github.com/kyverno/kyverno/releases/download/{{ kyverno_image_tag | quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          dest: /root/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:3b0905603e9d957ea372006af211fa0684ea7ed50ec9dd243923b4871b672594
+        register: downloaded_kyverno_cli
+      - name: Installing Kyverno cli
+        unarchive:
+          src: /root/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+          extra_opts:
+          - kyverno
+        when: downloaded_kyverno_cli is succeeded
       - name: Deploying Kyverno via YAMLs
         ansible.builtin.command: /usr/bin/kubectl create -f https://raw.githubusercontent.com/kyverno/kyverno/release-1.5/definitions/release/install.yaml
-        when: apiserver_avail is succeeded
+        when: apiserver_avail is succeeded and kyverno_image_tag_cosign.rc == 0
   - name: Provisioning Alpine 3.14 K8s (workers, post-first reboot)
     hosts: workers
     become: true

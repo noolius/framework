@@ -209,12 +209,12 @@
         copy:
           content: "{{ more_modules }}"
           dest: /etc/modules-load.d/K8s.conf
-          mode: '0444'
+          mode: '0440'
       - name: Configuring sysctl tunables
         copy:
           content: "{{ sysctl_tunables }}"
           dest: /etc/sysctl.d/K8s_v2.conf
-          mode: '0444'
+          mode: '0440'
       - name: Replacing /e/apk/repositories with edge/*
         copy:
           content: "{{ repo_contents }}"
