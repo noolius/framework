@@ -12,10 +12,10 @@ spec:
     - docker.io/senthilrch/kubefledged-controller:v0.8.2@sha256:51b05936dcbd9b80e41d7b9be76d20b6a1a334ac7dd4c1e2a442a12f0dda59c6
     - docker.io/senthilrch/kubefledged-cri-client:v0.8.2@sha256:1661e227268104849deced4515aefaef6c2075684865acf93a877e1507c09243
     - docker.io/senthilrch/kubefledged-webhook-server:v0.8.2@sha256:9a5b57ee52a1c572c7abf4ab24f8d8c508f7dcbbf5ba1965c528e9212afa31ca
-    - docker.io/calico/node:v3.21.0@sha256:c10a649e1e34afa950f060dac2c7b1a0535a36eef7fdeb8e6d19da578eba95e8
-    - docker.io/calico/cni:v3.21.0@sha256:32683594b8126ac47164c0f7710db16e6b5130a5d95c6cf450aa70aa96f8fa8a
-    - docker.io/calico/pod2daemon-flexvol:v3.21.0@sha256:43e238b3b093d0bcab8a7795e537759d56fa7d0bdc3325e1f0fc1a25bed6e68a
-    - docker.io/calico/kube-controllers:v3.21.0@sha256:1d35cf38db34f9914ca65ab4dd106960e5e74bbff362af7a21b9cd4fa10b9121
+    - docker.io/calico/node:v3.21.1@@sha256:a56f71d9f877c4bb75e2823c30c9bec3b1e29eae0ba97bc0dd01b25c69099cca
+    - docker.io/calico/cni:v3.21.1@sha256:0777ddd585fb9d5005190a2c3642f1a39ffaa3ee52e5f015f86870eb80479982
+    - docker.io/calico/pod2daemon-flexvol:v3.21.1@sha256:480ff7c9a9c981d29412f89bde9101d2b68edca3141a90f91e7e4f9cb8c93783
+    - docker.io/calico/kube-controllers:v3.21.1@@sha256:3953b37967396c434d40719d5f86232da44ea2b2f177116d350a34c4009caab2
     - quay.io/cilium/cilium:v1.11.0-rc3@sha256:176e0b3f8354d8705ae6d7527da606fa14f7ed4aa553848670d5aee7b1063ed3
     - quay.io/cilium/operator-generic:v1.11.0-rc3@sha256:bdaa42d80f8a11c5af398bc1f0c6e7656a05a6be0895a3c931a3bd3c41db7ebe
     - quay.io/cilium/hubble-relay:v1.11.0-rc3@sha256:1197f0caea15922296d4d9e1f1fee68d872e0c0a839604019fc029373c0bcc72
