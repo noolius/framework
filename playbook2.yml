@@ -16,7 +16,7 @@
     hosts: control_planes
     become: true
     vars:
-      kyverno_image_tag: v1.5.2-rc1
+      kyverno_image_tag: v1.5.2-rc2
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
       storageclass_manifest: |
@@ -479,7 +479,7 @@
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:3b0905603e9d957ea372006af211fa0684ea7ed50ec9dd243923b4871b672594
+          checksum: sha256:52d88b036598cedba533635d8ecf3ffda388dd2bccb80cf8363de00598f9e3d2
         register: downloaded_kyverno_cli
       - name: Installing Kyverno cli
         unarchive:
