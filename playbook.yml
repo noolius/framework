@@ -76,7 +76,7 @@
           url: https://github.com/cilium/hubble/releases/latest/download/hubble-linux-amd64.tar.gz
           dest: /root/hubble-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:e45c85b34d022b17ddb48621583c52b6d86e2e47e6fe71691ee46ff9f89edc27
+          checksum: sha256:63d62f6ea4b2daedaa08f95fbb95e457b4ee5d00167f4a84af0ba7ca3225924d
       - name: Installing Hubble cli
         unarchive:
           src: /root/hubble-linux-amd64.tar.gz
