@@ -418,7 +418,6 @@
       - name: Creating namespaces
         ansible.builtin.command: /usr/bin/kubectl create ns "{{ item }}"
         loop:
-          - kyverno
           - linkerd-viz
           - crossplane-system
         when: validating_config_linkerd.rc == 0
@@ -426,7 +425,6 @@
       - name: Annotating namespaces for Linkerd2 auto-injection
         ansible.builtin.command: /usr/bin/kubectl annotate ns "{{ item }}" linkerd.io/inject=enabled
         loop:
-          - kyverno
           - crossplane-system
         when: created_ns is succeeded
       - name: Labeling ns/kube-system as per Linkerd2 HA best practice
