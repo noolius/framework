@@ -30,6 +30,24 @@
         alias k='kubectl'
         alias ns='kubens'
         alias ctx='kubectx'
+      install-kyverno-kustomize: |
+        apiVersion: kustomize.config.k8s.io/v1beta1
+        kind: Kustomization
+        resources:
+          - install.yaml
+        transformers:
+          - annotations-kyverno.yaml
+      kyverno-transformation: |
+        apiVersion: builtin
+        kind: AnnotationsTransformer
+        metadata:
+          name: addAnnotationToNamespace
+        annotations:
+          linkerd.io/inject: enabled
+        fieldSpecs:
+        - kind: Namespace
+          path: metadata/annotations
+          create: true
       persistentvolume1_manifest: |
         apiVersion: v1
         kind: PersistentVolume
@@ -490,9 +508,38 @@
           extra_opts:
           - kyverno
         when: downloaded_kyverno_cli is succeeded
+      - name: Downloading Kyverno installation YAML
+        get_url:
+          url: https://raw.githubusercontent.com/kyverno/kyverno/release-1.5/definitions/release/install.yaml
+          dest: /root/install.yaml
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:48b0155288776a29b2a247521a57d36d5e65940bc3dec7c7a8e9282da954ebb2
+        register: download_kyverno_installation_yaml
+      - name: Copying Kyverno Kustomization
+        copy:
+          content: "{{ install-kyverno-kustomize }}"
+          dest: /root/kustomization.yaml
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
+        register: kyverno_kustomize
+      - name: Copying Kyverno Transformation
+        copy:
+          content: "{{ kyverno-transformation }}"
+          dest: /root/annotations-kyverno.yaml
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
+        register: kyverno_transform
       - name: Deploying Kyverno via YAMLs
-        ansible.builtin.command: /usr/bin/kubectl create -f https://raw.githubusercontent.com/kyverno/kyverno/release-1.5/definitions/release/install.yaml
-        when: apiserver_avail is succeeded and kyverno_image_tag_cosign.rc == 0
+        ansible.builtin.command: /usr/bin/kubectl apply -k /root/
+        when: apiserver_avail is succeeded and kyverno_image_tag_cosign.rc == 0 and \
+          download_kyverno_installation_yaml is succeeded and kyverno_kustomize is succeeded and \
+          kyverno_transform is succeeded
   - name: Provisioning Alpine 3.14 K8s (workers, post-first reboot)
     hosts: workers
     become: true
