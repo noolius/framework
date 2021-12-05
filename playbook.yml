@@ -2,6 +2,8 @@
   - name: Provisioning Alpine 3.14 K8s (control-planes)
     hosts: control_planes
     become: true
+    vars:
+      linkerd_version: edge-21.12.1
     tasks:
       - name: Downloading cosign
         get_url:
@@ -43,12 +45,12 @@
           checksum: sha256:5d5c4274a130f2fd5ad11ddd8fb3e0f647c8598ba25711360207fc6eab72f6be
       - name: Downloading and installing Linkerd2 cli
         get_url:
-          url: https://github.com/linkerd/linkerd2/releases/download/edge-21.11.4/linkerd2-cli-edge-21.11.4-linux-amd64
+          url: https://github.com/linkerd/linkerd2/releases/download/{{ linkerd_version | quote }}/linkerd2-cli-{{ linkerd_version | quote }}-linux-amd64
           dest: /usr/local/bin/linkerd
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:571ec5355ee20358dc6d257946a48680d9ddcbce9741397751d2f4687464cd63
+          checksum: sha256:9f953b2678895778c6ae91a6a72ec87a2ee167e4d49c6896d91ac0737210c48b
       - name: Downloading and installing Crossplane cli
         get_url:
           url: https://releases.crossplane.io/stable/v1.5.0/bin/linux_amd64/crank
