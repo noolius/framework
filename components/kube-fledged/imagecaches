@@ -7,7 +7,7 @@ spec:
     - cr.l5d.io/linkerd/controller:edge-21.12.1@sha256:6da258f37d51437a76513bc1098d12bdaebae240af8ced6fb1b61fb04c08ec0c
     - ghcr.io/kyverno/kyvernopre:v1.5.2-rc5@sha256:72955abc0670eab8fb17f1041cc78a86ae95bef9bcbf107328630bde6e2952fc
     - ghcr.io/kyverno/kyverno:v1.5.2-rc5@sha256:15fc5a3615660c77d1c0e0744492dad21d0647386f41634394b91cc0c99fb3f1
-    - docker.io/crossplane/crossplane:v1.5.0@sha256:6291932f4e9e39ac78be60cddc96f598fcc739ff0bfe67afed4287544a8d4611
+    - docker.io/crossplane/crossplane:v1.5.1@sha256:4c1b6b5ce88bd0ef9e6d32691a43ab69472839787fbfffbbe98013fc462f8f4b
     - docker.elastic.co/elasticsearch/elasticsearch:7.15.0@sha256:6ae227c688e05f7d487e0cfe08a5a3681f4d60d006ad9b5a1f72a741d6091df1
     - docker.elastic.co/eck/eck-operator:1.8.0@sha256:61d809705b3d65710d12e78a7e76cc2ff195fbd3bb3986d4df2fb80ebd29956a
     - docker.io/senthilrch/kubefledged-controller:v0.8.2@sha256:51b05936dcbd9b80e41d7b9be76d20b6a1a334ac7dd4c1e2a442a12f0dda59c6
