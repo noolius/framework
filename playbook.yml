@@ -53,12 +53,12 @@
           checksum: sha256:9f953b2678895778c6ae91a6a72ec87a2ee167e4d49c6896d91ac0737210c48b
       - name: Downloading and installing Crossplane cli
         get_url:
-          url: https://releases.crossplane.io/stable/v1.5.0/bin/linux_amd64/crank
+          url: https://releases.crossplane.io/stable/v1.5.1/bin/linux_amd64/crank
           dest: /usr/local/bin/kubectl-crossplane
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:c30bbc3d3793121472df554e79deca2ea5f31b40461f0b10068b1afc55cb2d62
+          checksum: sha256:8117370ef35e24dcfa6a4030b041800db862a28a4924cda9cde9b095b7c62b13
       - name: Downloading Cilium cli
         get_url:
           url: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
