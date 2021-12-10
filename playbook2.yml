@@ -30,14 +30,14 @@
         alias k='kubectl'
         alias ns='kubens'
         alias ctx='kubectx'
-      install-kyverno-kustomize: |
+      install_kyverno_kustomize: |
         apiVersion: kustomize.config.k8s.io/v1beta1
         kind: Kustomization
         resources:
           - install.yaml
         transformers:
           - annotations-kyverno.yaml
-      kyverno-transformation: |
+      kyverno_transformation: |
         apiVersion: builtin
         kind: AnnotationsTransformer
         metadata:
@@ -519,7 +519,7 @@
         register: download_kyverno_installation_yaml
       - name: Copying Kyverno Kustomization
         copy:
-          content: "{{ install-kyverno-kustomize }}"
+          content: "{{ install_kyverno_kustomize }}"
           dest: /root/kustomization.yaml
           owner: root
           group: root
@@ -528,7 +528,7 @@
         register: kyverno_kustomize
       - name: Copying Kyverno Transformation
         copy:
-          content: "{{ kyverno-transformation }}"
+          content: "{{ kyverno_transformation }}"
           dest: /root/annotations-kyverno.yaml
           owner: root
           group: root
