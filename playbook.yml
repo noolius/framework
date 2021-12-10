@@ -3,7 +3,7 @@
     hosts: control_planes
     become: true
     vars:
-      linkerd_version: edge-21.12.1
+      linkerd_version: edge-21.12.2
     tasks:
       - name: Downloading cosign
         get_url:
@@ -50,7 +50,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:9f953b2678895778c6ae91a6a72ec87a2ee167e4d49c6896d91ac0737210c48b
+          checksum: sha256:d6c3c705d553167f6d5b257cf0752e52f8280ccafb71f54f140b269dc84e483f
       - name: Downloading and installing Crossplane cli
         get_url:
           url: https://releases.crossplane.io/stable/v1.5.1/bin/linux_amd64/crank
