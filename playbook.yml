@@ -1,5 +1,5 @@
 ---
-  - name: Provisioning Alpine 3.14 K8s (control-planes)
+  - name: Provisioning Alpine 3.15 K8s (control-planes)
     hosts: control_planes
     become: true
     vars:
@@ -170,7 +170,7 @@
           remote_src: true
           extra_opts:
           - kustomize
-  - name: Provisioning Alpine 3.14 K8s (all)
+  - name: Provisioning Alpine 3.15 K8s (all)
     hosts: "*"
     become: true
     vars:
@@ -308,7 +308,7 @@
         service:
           name: mount_rshared
           enabled: true
-  - name: Provisioning Alpine 3.14 K8s (control-planes...more)
+  - name: Provisioning Alpine 3.15 K8s (control-planes...more)
     hosts: control_planes
     become: true
     tasks:
