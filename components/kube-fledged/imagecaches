@@ -1,10 +1,10 @@
 spec:
   cacheSpec:
   - images:
-    - cr.l5d.io/linkerd/policy-controller:edge-21.12.1@sha256:b0fb8ec29077a09b91d691f300b139e8c70f2de8c06a66fff2184c944b2b1d34
-    - cr.l5d.io/linkerd/proxy:edge-21.12.1@6db436a904f84208ca15e368c0db1d43408b7405ce0d0da144498c41965e0aee
-    - cr.l5d.io/linkerd/proxy-init:v1.5.1@sha256:bd87b4564ebed97b9cee7e16a0444adb0019be2f3fd406d42f3cfbe3d3e19bac
-    - cr.l5d.io/linkerd/controller:edge-21.12.1@sha256:6da258f37d51437a76513bc1098d12bdaebae240af8ced6fb1b61fb04c08ec0c
+    - cr.l5d.io/linkerd/policy-controller:edge-21.12.2@sha256:1a852ed34bd75b19b712ee820133c51d42840e9de4db32b3dbbd5bcae7c5d8da
+    - cr.l5d.io/linkerd/proxy:edge-21.12.2@sha256:cff2a68b358363249e9d73412200d67826325da943ba8bf0e5ed5638cb1be08d
+    - cr.l5d.io/linkerd/proxy-init:v1.5.2@sha256:109950b7f1cd31b97854f4d2193f0e376ef3d45294447905c9c8ee2ad0fa9bc5
+    - cr.l5d.io/linkerd/controller:edge-21.12.2@sha256:293e551f26542f7b54b8e6d1e92d5bd8ba3a3c98098266b0d64ba9ea17e65443
     - ghcr.io/kyverno/kyvernopre:v1.5.2@sha256:4d9721dc3d0f0538adfb8f56ec5564fa400bf83c5b6335deb5998009cda6a48a
     - ghcr.io/kyverno/kyverno:v1.5.2@sha256:94fa68208f9a85f9e640c8ffe18f57164bc7ddc393e6d6c4b4c20b16f71aa43c
     - docker.io/crossplane/crossplane:v1.5.1@sha256:4c1b6b5ce88bd0ef9e6d32691a43ab69472839787fbfffbbe98013fc462f8f4b
@@ -13,10 +13,10 @@ spec:
     - docker.io/senthilrch/kubefledged-controller:v0.8.2@sha256:51b05936dcbd9b80e41d7b9be76d20b6a1a334ac7dd4c1e2a442a12f0dda59c6
     - docker.io/senthilrch/kubefledged-cri-client:v0.8.2@sha256:1661e227268104849deced4515aefaef6c2075684865acf93a877e1507c09243
     - docker.io/senthilrch/kubefledged-webhook-server:v0.8.2@sha256:9a5b57ee52a1c572c7abf4ab24f8d8c508f7dcbbf5ba1965c528e9212afa31ca
-    - docker.io/calico/node:v3.21.1@@sha256:a56f71d9f877c4bb75e2823c30c9bec3b1e29eae0ba97bc0dd01b25c69099cca
-    - docker.io/calico/cni:v3.21.1@sha256:0777ddd585fb9d5005190a2c3642f1a39ffaa3ee52e5f015f86870eb80479982
-    - docker.io/calico/pod2daemon-flexvol:v3.21.1@sha256:480ff7c9a9c981d29412f89bde9101d2b68edca3141a90f91e7e4f9cb8c93783
-    - docker.io/calico/kube-controllers:v3.21.1@@sha256:3953b37967396c434d40719d5f86232da44ea2b2f177116d350a34c4009caab2
+    - docker.io/calico/node:v3.21.2@@sha256:6912fe45eb85f166de65e2c56937ffb58c935187a84e794fe21e06de6322a4d0
+    - docker.io/calico/cni:v3.21.2@sha256:ce618d26e7976c40958ea92d40666946d5c997cd2f084b6a794916dc9e28061b
+    - docker.io/calico/pod2daemon-flexvol:v3.21.2@sha256:b034c7c886e697735a5f24e52940d6d19e5f0cb5bf7caafd92ddbc7745cfd01e
+    - docker.io/calico/kube-controllers:v3.21.2@@sha256:1f4fcdcd9d295342775977b574c3124530a4b8adf4782f3603a46272125f01bf
     - quay.io/cilium/cilium:v1.11.0@sha256:ea677508010800214b0b5497055f38ed3bff57963fa2399bcb1c69cf9476453a
     - quay.io/cilium/operator-generic:v1.11.0@sha256:b522279577d0d5f1ad7cadaacb7321d1b172d8ae8c8bc816e503c897b420cfe3
     - quay.io/cilium/hubble-relay:v1.11.0@sha256:306ce38354a0a892b0c175ae7013cf178a46b79f51c52adb5465d87f14df0838
