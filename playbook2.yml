@@ -497,7 +497,7 @@
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:3558c6b5b4ccab5a5c6915d24877bc0a2a77771f6bec5a52d1944926c7de90f6
+          checksum: sha256:60fcdc4fbf1f2826d3687c56611dad229b5230e7e8d7d0e7ba629eeb97259457
         register: downloaded_kyverno_cli
       - name: Installing Kyverno cli
         unarchive:
