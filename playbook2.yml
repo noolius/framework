@@ -1,5 +1,5 @@
 ---
-  - name: Provisioning Alpine 3.14 K8s (all, post-first reboot)
+  - name: Provisioning Alpine 3.15 K8s (all, post-first reboot)
     hosts: "*"
     become: true
     tasks:
@@ -12,10 +12,11 @@
           state: absent
           regexp: '^127\.0\.1\.1'
           path: /etc/hosts
-  - name: Provisioning Alpine 3.14 K8s (control-planes, post-first reboot)
+  - name: Provisioning Alpine 3.15 K8s (control-planes, post-first reboot)
     hosts: control_planes
     become: true
     vars:
+      kyverno_image_tag: v1.5.2
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
       storageclass_manifest: |
@@ -29,6 +30,24 @@
         alias k='kubectl'
         alias ns='kubens'
         alias ctx='kubectx'
+      install_kyverno_kustomize: |
+        apiVersion: kustomize.config.k8s.io/v1beta1
+        kind: Kustomization
+        resources:
+          - install.yaml
+        transformers:
+          - annotations-kyverno.yaml
+      kyverno_transformation: |
+        apiVersion: builtin
+        kind: AnnotationsTransformer
+        metadata:
+          name: addAnnotationToNamespace
+        annotations:
+          linkerd.io/inject: enabled
+        fieldSpecs:
+        - kind: Namespace
+          path: metadata/annotations
+          create: true
       persistentvolume1_manifest: |
         apiVersion: v1
         kind: PersistentVolume
@@ -77,6 +96,8 @@
                   - node2
                   - node3
                   - node4
+      calico_version: v3.21
+      calicoctl_version: v3.21.2
       calico_manifest_diff: |
         --- calico.yaml 2021-08-08 12:00:17.582096536 -0400
         +++ calico.yaml 2021-08-30 23:59:21.350456483 -0400
@@ -261,7 +282,7 @@
           dest: /root/sc_manif
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Writing PersistentVolume 1 manifest
         copy:
@@ -269,7 +290,7 @@
           dest: /root/pv1_manif
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Writing PersistentVolume 2 manifest
         copy:
@@ -277,7 +298,7 @@
           dest: /root/pv2_manif
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
@@ -294,16 +315,16 @@
         register: apiserver_avail
       - name: Downloading Calico networking manifest
         get_url:
-          url: https://docs.projectcalico.org/archive/v3.21/manifests/calico.yaml
+          url: https://docs.projectcalico.org/archive/{{ calico_version | quote }}/manifests/calico.yaml
           dest: /root/calico.yaml
-          checksum: sha256:980eb9d23491a23e936868fbcdfdbff5cf7ffa606a3c6fa3a53020823f5440ec
+          checksum: sha256:c66e4bd506c6f9ad9836e4146e26940f8b851d99ca87e69c22f8a2aa45ecc12c
       - name: Writing unified GNU diff of Calico networking manifest
         copy:
           content: '{{ calico_manifest_diff }}'
           dest: /root/calico.yaml.diff
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Modifying Calico manifest
         ansible.posix.patch:
@@ -324,12 +345,12 @@
         register: redeploy_calico
       - name: Installing calicoctl on control-plane
         get_url:
-          url: https://github.com/projectcalico/calicoctl/releases/download/v3.21.1/calicoctl-linux-amd64
+          url: https://github.com/projectcalico/calicoctl/releases/download/{{ calicoctl_version | quote }}/calicoctl-linux-amd64
           dest: /usr/local/bin/calicoctl
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:a3383ea8366e58180c0abac2761cdbef3c7a5332361bca083fdbab727d8ea8d5
+          checksum: sha256:d495edfc254e00f008ef6872422a31ef5f442a1ff96bcb724dd2df86ef75b7e3
         when: got_calico_manifest is succeeded
       - name: Updating Calico IP autodetection
         ansible.builtin.command: /usr/bin/kubectl set env ds/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=eth1
@@ -356,7 +377,7 @@
           dest: /root/cni_chaining
           owner: root
           group: root
-          mode: '0444'
+          mode: '0400'
           remote_src: true
       - name: Chaining Cilium on top of Calico
         ansible.builtin.command: /usr/bin/kubectl apply -f /root/cni_chaining
@@ -364,7 +385,7 @@
         register: chain_cilium
       - name: Deploying Cilium using its Helm chart
         ansible.builtin.command: >
-          /usr/local/bin/helm install cilium cilium/cilium --version 1.11.0-rc3 --namespace kube-system
+          /usr/local/bin/helm install cilium cilium/cilium --version 1.11.0 --namespace kube-system
           --set k8sServiceHost={{ apiserver | quote }} --set k8sServicePort={{ k8s_serviceport | quote }}
           --set cni.chainingMode=generic-veth --set cni.customConf=true --set cni.configMap=cni-configuration
           --set tunnel=disabled --set enableIPv4Masquerade=false --set enableIdentityMark=false
@@ -414,40 +435,29 @@
         ansible.builtin.command: /usr/local/bin/linkerd check config
         register: validating_config_linkerd
         when: installing_config_stage_linkerd is succeeded
-      - name: Creating namespaces for linkerd-viz, k-rail & Crossplane
+      - name: Creating namespaces
         ansible.builtin.command: /usr/bin/kubectl create ns "{{ item }}"
         loop:
           - linkerd-viz
           - crossplane-system
-          - k-rail
         when: validating_config_linkerd.rc == 0
-        register: created_ns_k_rail_crossplane
-      - name: Annotating k-rail & Crossplane namespaces for Linkerd2 auto-injection
+        register: created_ns
+      - name: Annotating namespaces for Linkerd2 auto-injection
         ansible.builtin.command: /usr/bin/kubectl annotate ns "{{ item }}" linkerd.io/inject=enabled
         loop:
           - crossplane-system
-          - k-rail
-        when: created_ns_k_rail_crossplane is succeeded
-      - name: Defensively labeling kube-system, k-rail, linkerd* & crossplane namespaces not to break functionality
-        ansible.builtin.command: /usr/bin/kubectl label ns "{{ item }}" k-rail/ignore=true
-        loop:
-          - kube-system
-          - k-rail
-          - linkerd
-          - linkerd-viz
-          - crossplane-system
-        when: created_ns_k_rail_crossplane is succeeded and validating_config_linkerd.rc == 0
-        register: defensively_labeled_ns
+        when: created_ns is succeeded
       - name: Labeling ns/kube-system as per Linkerd2 HA best practice
         ansible.builtin.command: /usr/bin/kubectl label ns/kube-system config.linkerd.io/admission-webhooks=disabled
         when: validating_config_linkerd.rc == 0
+        register: label_ns_linkerd_ha
       - name: Installing Linkerd control-plane
         ansible.builtin.shell: >
           set -o pipefail && /usr/local/bin/linkerd install --ha control-plane | /usr/bin/kubectl apply -f -
         args:
           warn: false
           executable: /bin/bash
-        when: defensively_labeled_ns is succeeded
+        when: label_ns_linkerd_ha.rc == 0
         register: installing_control_plane_linkerd
       - name: Waiting for Linkerd deployment to settle (grace 90s)
         pause:
@@ -467,18 +477,72 @@
           - /root/sc_manif
           - /root/pv1_manif
           - /root/pv2_manif
-      - name: Adding k-rail's Helm charts
-        ansible.builtin.command: /usr/local/bin/helm repo add k-rail https://cruise-automation.github.io/k-rail/
-        when: root_config is succeeded
-        register: add_k_rail_helm
-      - name: Updating Helm repos
-        ansible.builtin.command: /usr/local/bin/helm repo update
-        when: add_k_rail_helm.rc == 0
-        register: updated_helm_repos
-      - name: Deploying k-rail using its Helm chart
-        ansible.builtin.command: /usr/local/bin/helm install k-rail k-rail/k-rail --namespace k-rail
-        when: updated_helm_repos.rc == 0
-  - name: Provisioning Alpine 3.14 K8s (workers, post-first reboot)
+      - name: Downloading Kyverno Cosign
+        get_url:
+          url: https://raw.githubusercontent.com/kyverno/kyverno/main/cosign.pub
+          dest: /root/cosign.pub
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:660cba4aacd38271f12f420a0b13177753d5dc1c6a3694be43e08c11ad54096e
+        register: downloaded_kyverno_pubsign
+      - name: Verifying Kyverno CR images
+        ansible.builtin.command: /usr/local/bin/cosign verify --key=/root/cosign.pub ghcr.io/kyverno/kyverno:{{ kyverno_image_tag | quote }}
+        when: downloaded_kyverno_pubsign is succeeded
+        register: kyverno_image_tag_cosign
+      - name: Downloading Kyverno cli
+        get_url:
+          url: https://github.com/kyverno/kyverno/releases/download/{{ kyverno_image_tag | quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          dest: /root/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:60fcdc4fbf1f2826d3687c56611dad229b5230e7e8d7d0e7ba629eeb97259457
+        register: downloaded_kyverno_cli
+      - name: Installing Kyverno cli
+        unarchive:
+          src: /root/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          dest: /usr/local/bin
+          owner: root
+          group: root
+          mode: '0555'
+          remote_src: true
+          extra_opts:
+          - kyverno
+        when: downloaded_kyverno_cli is succeeded
+      - name: Downloading Kyverno installation YAML
+        get_url:
+          url: https://raw.githubusercontent.com/kyverno/kyverno/release-1.5/definitions/release/install.yaml
+          dest: /root/install.yaml
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:2a65bea4245bf55393504aed74f82cfc000c41934e55b930a925d872e1fe502b
+        register: download_kyverno_installation_yaml
+      - name: Copying Kyverno Kustomization
+        copy:
+          content: "{{ install_kyverno_kustomize }}"
+          dest: /root/kustomization.yaml
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
+        register: kyverno_kustomize
+      - name: Copying Kyverno Transformation
+        copy:
+          content: "{{ kyverno_transformation }}"
+          dest: /root/annotations-kyverno.yaml
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
+        register: kyverno_transform
+      - name: Deploying Kyverno via YAMLs
+        ansible.builtin.command: /usr/bin/kubectl apply -k /root/
+        when: apiserver_avail is succeeded and kyverno_image_tag_cosign.rc == 0 and
+          download_kyverno_installation_yaml is succeeded and kyverno_kustomize is succeeded and
+          kyverno_transform is succeeded
+  - name: Provisioning Alpine 3.15 K8s (workers, post-first reboot)
     hosts: workers
     become: true
     vars:

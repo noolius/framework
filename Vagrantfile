@@ -14,7 +14,7 @@ Vagrant.configure("2") do |config|
   ##
   ## ---> Uses the following plugins: reload, sshfs
   ##
-  config.vm.box = "roboxes/alpine314"
+  config.vm.box = "roboxes/alpine315"
   config.vm.synced_folder ".", "/vagrant", type: "sshfs"
   config.vm.box_check_update = false
   config.vm.provider "virtualbox" do |vb|

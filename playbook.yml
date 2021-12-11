@@ -1,17 +1,37 @@
 ---
-  - name: Provisioning Alpine 3.14 K8s (control-planes)
+  - name: Provisioning Alpine 3.15 K8s (control-planes)
     hosts: control_planes
     become: true
+    vars:
+      linkerd_version: edge-21.12.2
+      cilium_cli_version: v0.10.0
+      hubble_version: v0.9.0
+      cosign_version: v1.3.1
+      helm_version: v3.7.2
+      kapp_version: v0.43.0
+      crank_version: v1.5.1
+      thanos_cli_version: 0.23.2-rc.0
+      kustomize_version: v4.4.1
+      cf_version: 7.4.0
+      certmanager_version: v1.6.1
     tasks:
+      - name: Downloading cosign
+        get_url:
+          url: https://github.com/sigstore/cosign/releases/download/{{ cosign_version | quote }}/cosign-linux-amd64
+          dest: /usr/local/bin/cosign
+          owner: root
+          group: root
+          mode: '0555'
+          checksum: sha256:1227b270e5d7d21d09469253cce17b72a14f6b7c9036dfc09698c853b31e8fc8
       - name: Downloading Helm cli
         get_url:
-          url: https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
-          dest: /root/helm-v3.7.1-linux-amd64.tar.gz
+          url: https://get.helm.sh/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
+          dest: /root/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:6cd6cad4b97e10c33c978ff3ac97bb42b68f79766f1d2284cfd62ec04cd177f4
+          checksum: sha256:4ae30e48966aba5f807a4e140dad6736ee1a392940101e4d79ffb4ee86200a9e
       - name: Extracting Helm cli
         unarchive:
-          src: /root/helm-v3.7.1-linux-amd64.tar.gz
+          src: /root/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
           dest: /root
           mode: '0400'
           remote_src: true
@@ -27,34 +47,34 @@
           remote_src: true
       - name: Downloading and installing kapp cli
         get_url:
-          url: https://github.com/vmware-tanzu/carvel-kapp/releases/download/v0.42.0/kapp-linux-amd64
+          url: https://github.com/vmware-tanzu/carvel-kapp/releases/download/{{ kapp_version | quote }}/kapp-linux-amd64
           dest: /usr/local/bin/kapp
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:5d5c4274a130f2fd5ad11ddd8fb3e0f647c8598ba25711360207fc6eab72f6be
+          checksum: sha256:f8669039dfba001081c94576c898d10aba28ecceffcd98708e8f2c87c13109e4
       - name: Downloading and installing Linkerd2 cli
         get_url:
-          url: https://github.com/linkerd/linkerd2/releases/download/edge-21.11.4/linkerd2-cli-edge-21.11.4-linux-amd64
+          url: https://github.com/linkerd/linkerd2/releases/download/{{ linkerd_version | quote }}/linkerd2-cli-{{ linkerd_version | quote }}-linux-amd64
           dest: /usr/local/bin/linkerd
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:571ec5355ee20358dc6d257946a48680d9ddcbce9741397751d2f4687464cd63
+          checksum: sha256:d6c3c705d553167f6d5b257cf0752e52f8280ccafb71f54f140b269dc84e483f
       - name: Downloading and installing Crossplane cli
         get_url:
-          url: https://releases.crossplane.io/stable/v1.5.0/bin/linux_amd64/crank
+          url: https://releases.crossplane.io/stable/{{ crank_version | quote }}/bin/linux_amd64/crank
           dest: /usr/local/bin/kubectl-crossplane
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:c30bbc3d3793121472df554e79deca2ea5f31b40461f0b10068b1afc55cb2d62
+          checksum: sha256:8117370ef35e24dcfa6a4030b041800db862a28a4924cda9cde9b095b7c62b13
       - name: Downloading Cilium cli
         get_url:
-          url: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
+          url: https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version | quote }}/cilium-linux-amd64.tar.gz
           dest: /root/cilium-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:a36e81739af622a8d8c7f3fdcdcf67a12468c6abeac5d3fa4d93ca2470622cdb
+          checksum: sha256:2a309542dc9504d3ee3583617fef98e5cb24cdb5e8578a52fa6584932bb2c46c
       - name: Installing Cilium cli
         unarchive:
           src: /root/cilium-linux-amd64.tar.gz
@@ -65,10 +85,10 @@
           remote_src: true
       - name: Downloading Hubble cli
         get_url:
-          url: https://github.com/cilium/hubble/releases/latest/download/hubble-linux-amd64.tar.gz
+          url: https://github.com/cilium/hubble/releases/download/{{ hubble_version | quote }}/hubble-linux-amd64.tar.gz
           dest: /root/hubble-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:e45c85b34d022b17ddb48621583c52b6d86e2e47e6fe71691ee46ff9f89edc27
+          checksum: sha256:63d62f6ea4b2daedaa08f95fbb95e457b4ee5d00167f4a84af0ba7ca3225924d
       - name: Installing Hubble cli
         unarchive:
           src: /root/hubble-linux-amd64.tar.gz
@@ -79,21 +99,21 @@
           remote_src: true
       - name: Downloading Thanos cli
         get_url:
-          url: https://github.com/thanos-io/thanos/releases/download/v0.23.1/thanos-0.23.1.linux-amd64.tar.gz
-          dest: /root/thanos-0.23.1.linux-amd64.tar.gz
+          url: https://github.com/thanos-io/thanos/releases/download/v{{ thanos_cli_version | quote }}/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
+          dest: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:86afe3f4fce5201b87b3ed7cc78485f564bd1248ba7f3a6d3a73784fcdd0d449
+          checksum: sha256:17b3f65de7f6c019e9459bf7079df274072da0487f97167ccaa43dab2f37cb41
       - name: Extracting Thanos cli
         unarchive:
-          src: /root/thanos-0.23.1.linux-amd64.tar.gz
+          src: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           dest: /root
           mode: '0400'
           remote_src: true
           extra_opts:
-          - thanos-0.23.1.linux-amd64/thanos
+          - thanos-{{ thanos_cli_version | quote }}.linux-amd64/thanos
       - name: Installing Thanos cli
         copy:
-          src: /root/thanos-0.23.1.linux-amd64/thanos
+          src: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64/thanos
           dest: /usr/local/bin/thanos
           owner: root
           group: root
@@ -101,13 +121,13 @@
           remote_src: true
       - name: Downloading cf v7 cli
         get_url:
-          url: https://s3-us-west-1.amazonaws.com/v7-cf-cli-releases/releases/v7.3.0/cf7-cli_7.3.0_linux_x86-64.tgz
-          dest: /root/cf7-cli_7.3.0_linux_x86-64.tgz
+          url: https://packages.cloudfoundry.org/stable?release=linux64-binary&version={{ cf_version | quote }}&source=github-rel
+          dest: /root/cf7-cli_{{ cf_version | quote }}_linux_x86-64.tgz
           mode: '0400'
-          checksum: sha256:7a78614b2bb58e633d9488a357871c3ce2cc1b70b08f3e56d2bb9c82505565f9
+          checksum: sha256:6ac44598c580fe24c98f3b52df2e6357116478c68dee5c74800cb39cba421695
       - name: Installing cf v7 cli
         unarchive:
-          src: /root/cf7-cli_7.3.0_linux_x86-64.tgz
+          src: /root/cf7-cli_{{ cf_version | quote }}_linux_x86-64.tgz
           dest: /usr/local/bin
           owner: root
           group: root
@@ -126,7 +146,7 @@
         when: installing_cf_v7_cli is succeeded
       - name: Downloading kubectl cert-manager
         get_url:
-          url: https://github.com/jetstack/cert-manager/releases/download/v1.6.1/kubectl-cert_manager-linux-amd64.tar.gz
+          url: https://github.com/jetstack/cert-manager/releases/download/{{ certmanager_version | quote }}/kubectl-cert_manager-linux-amd64.tar.gz
           dest: /root/kubectl-cert_manager-linux-amd64.tar.gz
           owner: root
           group: root
@@ -144,15 +164,15 @@
           - kubectl-cert_manager
       - name: Downloading Kustomize
         get_url:
-          url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.4.0/kustomize_v4.4.0_linux_amd64.tar.gz
-          dest: /root/kustomize_v4.4.0_linux_amd64.tar.gz
+          url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F{{ kustomize_version | quote }}/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
+          dest: /root/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:bf3a0d7409d9ce6a4a393ba61289047b4cb875a36ece1ec94b36924a9ccbaa0f
+          checksum: sha256:2d5927efec40ba32a121c49f6df9955b8b8a296ef1dec4515a46fc84df158798
       - name: Installing Kustomize
         unarchive:
-          src: /root/kustomize_v4.4.0_linux_amd64.tar.gz
+          src: /root/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
           dest: /usr/local/bin
           owner: root
           group: root
@@ -160,7 +180,7 @@
           remote_src: true
           extra_opts:
           - kustomize
-  - name: Provisioning Alpine 3.14 K8s (all)
+  - name: Provisioning Alpine 3.15 K8s (all)
     hosts: "*"
     become: true
     vars:
@@ -201,12 +221,12 @@
         copy:
           content: "{{ more_modules }}"
           dest: /etc/modules-load.d/K8s.conf
-          mode: '0444'
+          mode: '0440'
       - name: Configuring sysctl tunables
         copy:
           content: "{{ sysctl_tunables }}"
           dest: /etc/sysctl.d/K8s_v2.conf
-          mode: '0444'
+          mode: '0440'
       - name: Replacing /e/apk/repositories with edge/*
         copy:
           content: "{{ repo_contents }}"
@@ -298,7 +318,7 @@
         service:
           name: mount_rshared
           enabled: true
-  - name: Provisioning Alpine 3.14 K8s (control-planes...more)
+  - name: Provisioning Alpine 3.15 K8s (control-planes...more)
     hosts: control_planes
     become: true
     tasks:
