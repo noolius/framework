@@ -401,6 +401,11 @@
           path: /usr/libexec/cni/calico
         when: update_calico_ip_autodetection is succeeded
         register: old_calico_cni_plugin_exists
+      - name: Waiting for /u/libexec/k/k..-plugins/volume/exec/nodeagent../uds
+        wait_for:
+          path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds/uds
+        when: update_calico_ip_autodetection is succeeded
+        register: old_flexvoldri_exists
       - name: Checking whether to copy precompiled Calico CNI plugins (Go/musl)
         ansible.builtin.stat:
           path: /vagrant/calico
@@ -414,11 +419,28 @@
           group: root
           mode: '4755'
           remote_src: true
-          checksum: 1e0fb77510e250166b2e2125de7924cf7eda5f68
+          checksum: efc62f0ab2c63c5a575d4e4bf9a78872ad9faa87
         when: precomplied_calico_cni_plugin.stat.exists
         loop:
           - /usr/libexec/cni/calico
           - /usr/libexec/cni/calico-ipam
+      - name: Checking whether to copy precompiled Calico Flexvolume driver (Go/musl)
+        ansible.builtin.stat:
+          path: /vagrant/flexvol-amd64
+        when: old_flexvoldri_exists is succeeded
+        register: precompiled_calico_flexvoldri
+      - name: Copying precompiled Calico Flexvolume driver (Go/musl)
+        copy:
+          src: /vagrant/flexvol-amd64
+          dest: "{{ item }}"
+          owner: root
+          group: root
+          mode: '0550'
+          remote_src: true
+          checksum: 9a9f8303a9b315337514189dcb4d34d7dc12f5ad
+        when: precompiled_calico_flexvoldri.stat.exists
+        loop:
+          - /usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds/uds
       - name: Running Linkerd pre-install check
         ansible.builtin.command: /usr/local/bin/linkerd check --pre
         register: precheck_linkerd
@@ -467,6 +489,32 @@
         ansible.builtin.command: /usr/local/bin/linkerd check
         when: installing_control_plane_linkerd.rc == 0
         register: ok_linkerd_check
+        ignore_errors: true
+      - name: Re-copying precompiled Calico CNI plugins (Go/musl)
+        copy:
+          src: /vagrant/calico
+          dest: "{{ item }}"
+          owner: root
+          group: root
+          mode: '4755'
+          remote_src: true
+          checksum: efc62f0ab2c63c5a575d4e4bf9a78872ad9faa87
+        when: precomplied_calico_cni_plugin.stat.exists and ok_linkerd_check.rc != 0
+        loop:
+          - /usr/libexec/cni/calico
+          - /usr/libexec/cni/calico-ipam
+      - name: Re-copying precompiled Calico Flexvolume driver (Go/musl)
+        copy:
+          src: /vagrant/flexvol-amd64
+          dest: "{{ item }}"
+          owner: root
+          group: root
+          mode: '0550'
+          remote_src: true
+          checksum: 9a9f8303a9b315337514189dcb4d34d7dc12f5ad
+        when: precompiled_calico_flexvoldri.stat.exists and ok_linkerd_check.rc != 0
+        loop:
+          - /usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds/uds
       - name: Deploying Crossplane using its Helm chart
         ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
         when: installing_control_plane_linkerd.rc == 0
@@ -623,7 +671,7 @@
           group: root
           mode: '4755'
           remote_src: true
-          checksum: 1e0fb77510e250166b2e2125de7924cf7eda5f68
+          checksum: efc62f0ab2c63c5a575d4e4bf9a78872ad9faa87
         when: precomplied_calico_cni_plugin.stat.exists
         loop:
           - /usr/libexec/cni/calico
