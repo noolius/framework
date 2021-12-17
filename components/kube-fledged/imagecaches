@@ -1,10 +1,10 @@
 spec:
   cacheSpec:
   - images:
-    - cr.l5d.io/linkerd/policy-controller:edge-21.12.2@sha256:1a852ed34bd75b19b712ee820133c51d42840e9de4db32b3dbbd5bcae7c5d8da
-    - cr.l5d.io/linkerd/proxy:edge-21.12.2@sha256:cff2a68b358363249e9d73412200d67826325da943ba8bf0e5ed5638cb1be08d
+    - cr.l5d.io/linkerd/policy-controller:edge-21.12.3@sha256:7aa8a2b2f067e5cb24b10e6e21794897e9ad5116b69689771d788d2036068e79
+    - cr.l5d.io/linkerd/proxy:edge-21.12.3@sha256:2d2c447df434337b6b560d45cf7cfe6540b9a49a9107668badf378a944181518
     - cr.l5d.io/linkerd/proxy-init:v1.5.2@sha256:109950b7f1cd31b97854f4d2193f0e376ef3d45294447905c9c8ee2ad0fa9bc5
-    - cr.l5d.io/linkerd/controller:edge-21.12.2@sha256:293e551f26542f7b54b8e6d1e92d5bd8ba3a3c98098266b0d64ba9ea17e65443
+    - cr.l5d.io/linkerd/controller:edge-21.12.3@sha256:746e8f4c808f6c89180a27dff91d1c098be79a341971e586badc3c54222b64fd
     - ghcr.io/kyverno/kyvernopre:v1.5.2@sha256:4d9721dc3d0f0538adfb8f56ec5564fa400bf83c5b6335deb5998009cda6a48a
     - ghcr.io/kyverno/kyverno:v1.5.2@sha256:94fa68208f9a85f9e640c8ffe18f57164bc7ddc393e6d6c4b4c20b16f71aa43c
     - docker.io/crossplane/crossplane:v1.5.1@sha256:4c1b6b5ce88bd0ef9e6d32691a43ab69472839787fbfffbbe98013fc462f8f4b
