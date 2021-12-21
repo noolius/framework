@@ -96,84 +96,8 @@
                   - node2
                   - node3
                   - node4
-      calico_version: v3.21
-      calicoctl_version: v3.21.2
-      calico_manifest_diff: |
-        --- calico.yaml 2021-08-08 12:00:17.582096536 -0400
-        +++ calico.yaml 2021-08-30 23:59:21.350456483 -0400
-        @@ -3848,12 +3848,14 @@
-                     # Auto-detect the BGP IP address.
-                     - name: IP
-                       value: "autodetect"
-        +            - name: IP_AUTODETECTION_METHOD
-        +              value: "interface=eth1"
-                     # Enable IPIP
-                     - name: CALICO_IPV4POOL_IPIP
-        -              value: "Always"
-        +              value: "Never"
-                     # Enable or Disable VXLAN on the default IP pool.
-                     - name: CALICO_IPV4POOL_VXLAN
-        -              value: "Never"
-        +              value: "Always"
-                     # Set MTU for tunnel device used if ipip is enabled
-                     - name: FELIX_IPINIPMTU
-                       valueFrom:
-        @@ -3898,7 +3900,7 @@
-                       command:
-                       - /bin/calico-node
-                       - -felix-live
-        -              - -bird-live
-        +                #    - -bird-live
-                     periodSeconds: 10
-                     initialDelaySeconds: 10
-                     failureThreshold: 6
-        @@ -3908,7 +3910,7 @@
-                       command:
-                       - /bin/calico-node
-                       - -felix-ready
-        -              - -bird-ready
-        +                #  - -bird-ready
-                     periodSeconds: 10
-                     timeoutSeconds: 10
-                   volumeMounts:
       cilium_version: 1.11.0
-      cni_chaining: |
-        apiVersion: v1
-        kind: ConfigMap
-        metadata:
-          name: cni-configuration
-          namespace: kube-system
-        data:
-          cni-config: |-
-            {
-              "name": "generic-veth",
-              "cniVersion": "0.3.1",
-              "plugins": [
-                {
-                  "type": "calico",
-                  "log_level": "info",
-                  "datastore_type": "kubernetes",
-                  "mtu": 1440,
-                  "ipam": {
-                      "type": "calico-ipam"
-                  },
-                  "policy": {
-                      "type": "k8s"
-                  },
-                  "kubernetes": {
-                      "kubeconfig": "/etc/cni/net.d/calico-kubeconfig"
-                  }
-                },
-                {
-                  "type": "portmap",
-                  "snat": true,
-                  "capabilities": {"portMappings": true}
-                },
-                {
-                  "type": "cilium-cni"
-                }
-              ]
-            }
+      pod_network_cidr: 10.188.0.0/16
     tasks:
       - name: Creating KUBECONFIG dir for root user
         file:
@@ -196,7 +120,8 @@
       - name: Creating K8s manifests with api-server on internal (to-VMs) LAN
         ansible.builtin.shell: >
           nohup /usr/bin/kubeadm init --apiserver-advertise-address={{ apiserver | quote }}
-          --pod-network-cidr=10.188.0.0/16 --cri-socket=/run/containerd/containerd.sock </dev/null >/vagrant/text 2>&1 &
+          --pod-network-cidr={{ pod_network_cidr | quote }}
+          --cri-socket=/run/containerd/containerd.sock </dev/null >/vagrant/text 2>&1 &
         args:
           executable: /bin/bash
           warn: false
@@ -314,138 +239,24 @@
         wait_for:
           port: '{{ k8s_serviceport | quote }}'
         register: apiserver_avail
-      - name: Downloading Calico networking manifest
-        get_url:
-          url: https://docs.projectcalico.org/archive/{{ calico_version | quote }}/manifests/calico.yaml
-          dest: /root/calico.yaml
-          checksum: sha256:c66e4bd506c6f9ad9836e4146e26940f8b851d99ca87e69c22f8a2aa45ecc12c
-      - name: Writing unified GNU diff of Calico networking manifest
-        copy:
-          content: '{{ calico_manifest_diff }}'
-          dest: /root/calico.yaml.diff
-          owner: root
-          group: root
-          mode: '0400'
-          remote_src: true
-      - name: Modifying Calico manifest
-        ansible.posix.patch:
-          src: /root/calico.yaml.diff
-          dest: /root/calico.yaml
-          remote_src: true
-        register: got_calico_manifest
-      - name: Deploying Calico
-        ansible.builtin.command: /usr/bin/kubectl apply -f /root/calico.yaml
-        when: got_calico_manifest is succeeded and apiserver_avail is succeeded
-        register: deploy_calico
-        ignore_errors: true
-      - name: Re-deploying Calico due to missing kinds in ClusterRole*/PodDisruptionBudget
-        ansible.builtin.shell: /usr/bin/kubectl delete -f /root/calico.yaml ; /usr/bin/kubectl apply -f /root/calico.yaml
-        when: "'no matches for kind' in deploy_calico.stderr"
-        args:
-          warn: false
-        register: redeploy_calico
-      - name: Installing calicoctl on control-plane
-        get_url:
-          url: https://github.com/projectcalico/calicoctl/releases/download/{{ calicoctl_version | quote }}/calicoctl-linux-amd64
-          dest: /usr/local/bin/calicoctl
-          owner: root
-          group: root
-          mode: '0555'
-          checksum: sha256:d495edfc254e00f008ef6872422a31ef5f442a1ff96bcb724dd2df86ef75b7e3
-        when: got_calico_manifest is succeeded
-      - name: Updating Calico IP autodetection
-        ansible.builtin.command: /usr/bin/kubectl set env ds/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=eth1
-        when: deploy_calico is succeeded or redeploy_calico is succeeded
-        register: update_calico_ip_autodetection_pre_wg
-      - name: Waiting for Calico to settle (grace 79s)
-        pause:
-          seconds: 79
-      - name: Applying WireGuard(tm) enciphering for inter-node traffic
-        ansible.builtin.command: /usr/local/bin/calicoctl patch felixconfiguration default --type='merge' -p '{"spec":{"wireguardEnabled":true}}'
-        when: update_calico_ip_autodetection_pre_wg is succeeded
-        register: apply_wg
-      - name: Patching ConfigMap to modify MTU (-> 1440) for cluster traffic
-        ansible.builtin.command: /usr/bin/kubectl patch cm/calico-config -n kube-system --type merge -p '{"data":{"veth_mtu":"1440"}}'
-        when: apply_wg is succeeded
-        register: modify_mtu_post_wg
-      - name: Redeploying Calico pods with ConfigMap change
-        ansible.builtin.command: /usr/bin/kubectl rollout restart ds/calico-node -n kube-system
-        when: modify_mtu_post_wg is succeeded
-        register: update_calico_ip_autodetection
-      - name: Copying CNI chaining for Cilium
-        copy:
-          content: '{{ cni_chaining }}'
-          dest: /root/cni_chaining
-          owner: root
-          group: root
-          mode: '0400'
-          remote_src: true
-      - name: Chaining Cilium on top of Calico
-        ansible.builtin.command: /usr/bin/kubectl apply -f /root/cni_chaining
-        when: update_calico_ip_autodetection is succeeded
-        register: chain_cilium
       - name: Deploying Cilium using its Helm chart
         ansible.builtin.command: >
           /usr/local/bin/helm install cilium cilium/cilium --version {{ cilium_version | quote }} --namespace kube-system
           --set k8sServiceHost={{ apiserver | quote }} --set k8sServicePort={{ k8s_serviceport | quote }}
-          --set cni.chainingMode=generic-veth --set cni.customConf=true --set cni.configMap=cni-configuration
-          --set tunnel=disabled --set enableIPv4Masquerade=false --set enableIdentityMark=false
           --set hubble.relay.enabled=true --set hubble.ui.enabled=true
-        when: chain_cilium is succeeded
+          --set ipam.operator.clusterPoolIPv4PodCIDRList={{ pod_network_cidr | quote }}
+          --set l7Proxy=false --set encryption.enabled=true --set encryption.type=wireguard
+        when: apiserver_avail is succeeded
         register: deploy_cilium
       - name: Waiting for Cilium deployment to settle (grace 35s)
         pause:
           seconds: 35
-        when: deploy_cilium is succeeded
-      - name: Waiting for /u/libexec/cni/calico*
-        wait_for:
-          path: /usr/libexec/cni/calico
-        when: update_calico_ip_autodetection is succeeded
-        register: old_calico_cni_plugin_exists
-      - name: Waiting for /u/libexec/k/k..-plugins/volume/exec/nodeagent../uds
-        wait_for:
-          path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds/uds
-        when: update_calico_ip_autodetection is succeeded
-        register: old_flexvoldri_exists
-      - name: Checking whether to copy precompiled Calico CNI plugins (Go/musl)
-        ansible.builtin.stat:
-          path: /vagrant/calico
-        when: old_calico_cni_plugin_exists is succeeded
-        register: precomplied_calico_cni_plugin
-      - name: Copying precompiled Calico CNI plugins (Go/musl)
-        copy:
-          src: /vagrant/calico
-          dest: "{{ item }}"
-          owner: root
-          group: root
-          mode: '4755'
-          remote_src: true
-          checksum: efc62f0ab2c63c5a575d4e4bf9a78872ad9faa87
-        when: precomplied_calico_cni_plugin.stat.exists
-        loop:
-          - /usr/libexec/cni/calico
-          - /usr/libexec/cni/calico-ipam
-      - name: Checking whether to copy precompiled Calico Flexvolume driver (Go/musl)
-        ansible.builtin.stat:
-          path: /vagrant/flexvol-amd64
-        when: old_flexvoldri_exists is succeeded
-        register: precompiled_calico_flexvoldri
-      - name: Copying precompiled Calico Flexvolume driver (Go/musl)
-        copy:
-          src: /vagrant/flexvol-amd64
-          dest: "{{ item }}"
-          owner: root
-          group: root
-          mode: '0550'
-          remote_src: true
-          checksum: 9a9f8303a9b315337514189dcb4d34d7dc12f5ad
-        when: precompiled_calico_flexvoldri.stat.exists
-        loop:
-          - /usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds/uds
+        when: deploy_cilium.rc == 0
+        register: waited_cilium
       - name: Running Linkerd pre-install check
         ansible.builtin.command: /usr/local/bin/linkerd check --pre
         register: precheck_linkerd
-        when: deploy_cilium is succeeded
+        when: waited_cilium is succeeded
       - name: Installing Linkerd config
         ansible.builtin.shell: >
           set -o pipefail && /usr/local/bin/linkerd install config | /usr/bin/kubectl apply -f -
@@ -490,32 +301,6 @@
         ansible.builtin.command: /usr/local/bin/linkerd check
         when: installing_control_plane_linkerd.rc == 0
         register: ok_linkerd_check
-        ignore_errors: true
-      - name: Re-copying precompiled Calico CNI plugins (Go/musl)
-        copy:
-          src: /vagrant/calico
-          dest: "{{ item }}"
-          owner: root
-          group: root
-          mode: '4755'
-          remote_src: true
-          checksum: efc62f0ab2c63c5a575d4e4bf9a78872ad9faa87
-        when: precomplied_calico_cni_plugin.stat.exists and ok_linkerd_check.rc != 0
-        loop:
-          - /usr/libexec/cni/calico
-          - /usr/libexec/cni/calico-ipam
-      - name: Re-copying precompiled Calico Flexvolume driver (Go/musl)
-        copy:
-          src: /vagrant/flexvol-amd64
-          dest: "{{ item }}"
-          owner: root
-          group: root
-          mode: '0550'
-          remote_src: true
-          checksum: 9a9f8303a9b315337514189dcb4d34d7dc12f5ad
-        when: precompiled_calico_flexvoldri.stat.exists and ok_linkerd_check.rc != 0
-        loop:
-          - /usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds/uds
       - name: Deploying Crossplane using its Helm chart
         ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
         when: installing_control_plane_linkerd.rc == 0
@@ -610,6 +395,8 @@
           path: /vagrant/text
           search_regex: 'sha256'
         register: got_token_and_hash
+        async: 600
+        poll: 20
       - name: Setting node registration token
         ansible.builtin.command: awk '/^kubeadm/ {print $5}' /vagrant/text
         when: got_token_and_hash is succeeded
@@ -655,25 +442,3 @@
         service:
           name: kubelet
           state: restarted
-      - name: Waiting for /u/libexec/cni/calico*
-        wait_for:
-          path: /usr/libexec/cni/calico
-        register: old_calico_cni_plugin_exists
-      - name: Checking whether to copy precompiled Calico CNI plugins (Go/musl)
-        ansible.builtin.stat:
-          path: /vagrant/calico
-        when: old_calico_cni_plugin_exists is succeeded
-        register: precomplied_calico_cni_plugin
-      - name: Copying precompiled Calico CNI plugins (Go/musl)
-        copy:
-          src: /vagrant/calico
-          dest: "{{ item }}"
-          owner: root
-          group: root
-          mode: '4755'
-          remote_src: true
-          checksum: efc62f0ab2c63c5a575d4e4bf9a78872ad9faa87
-        when: precomplied_calico_cni_plugin.stat.exists
-        loop:
-          - /usr/libexec/cni/calico
-          - /usr/libexec/cni/calico-ipam

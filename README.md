@@ -34,12 +34,9 @@ Clone this repo, then create ``vagrant_loc`` in it with the fully qualified path
 v=/usr/bin/vagrant
 ```
 
-In ``Vagrantfile``, adjust the ``private_network`` /24 CIDR as necessary.
+In ``Vagrantfile``, adjust the host-only ``private_network`` /24 CIDR as necessary. As of VirtualBox 6.1.30, also [add this CIDR to /etc/vbox/networks.conf](https://www.virtualbox.org/manual/ch06.html#network_hostonly).
 
 If you change it, also note (or modify) ``apiserver`` (twice) in ``playbook2.yml``.
-
-See also [this section](https://docs.projectcalico.org/getting-started/kubernetes/installation/config-options#switching-from-ip-in-ip-to-vxlan) for applied modifications to ``calico.yaml``.
-
 
 ## Moar fast!
 
@@ -64,9 +61,7 @@ Versioned URIs in the Ansible playbooks should be OK, but "latest" URLs will bre
 
 If using Mitogen v0.3.0 on the host with Ansible (see [this note](https://mitogen.networkgenomics.com/ansible_detailed.html) and [these GitHub tags](https://github.com/mitogen-hq/mitogen/tags)), use the python2 Alpine apk (instead of python3) in the shell provision section of ``Vagrantfile``. On the host, PyPy 7.3.7 do not work with Mitogen; you'll need to use CPython (tested with 3.10).
 
-Cilium is used in Calico-chaining mode and not as a kube-proxy replacement, so expect several of the ``cilium connectivity test``s to fail.
-
-Calico is configured to encipher intra-cluster node traffic using WireGuard(tm).
+Cilium is configured to encipher inter-node traffic using WireGuard(tm), so expect several of the ``cilium connectivity test``s to fail.
 
 ## Known issues
 
