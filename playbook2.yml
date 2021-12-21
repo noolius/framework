@@ -5,7 +5,7 @@
     tasks:
       - name: Adding node IP to /e/hosts
         blockinfile:
-          block: '{{ ansible_eth1.ipv4.address | quote }}   {{ ansible_hostname | quote }} {{ ansible_hostname | quote }}.local'
+          block: '{{ ansible_eth1.ipv4.address | quote }}   {{ ansible_hostname | quote }} {{ ansible_hostname | quote }}.localdomain'
           path: /etc/hosts
       - name: Removing extraneous loopback entry from /e/hosts
         lineinfile:
