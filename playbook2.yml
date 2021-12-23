@@ -247,6 +247,7 @@
           --set ipam.operator.clusterPoolIPv4PodCIDRList={{ pod_network_cidr | quote }}
           --set l7Proxy=false --set encryption.enabled=true --set encryption.type=wireguard
           --set bandwidthManager=true
+          --set hostFirewall.enabled=true --set devices='{eth0,eth1}'
         when: apiserver_avail is succeeded
         register: deploy_cilium
       - name: Waiting for Cilium deployment to settle (grace 35s)
@@ -327,7 +328,8 @@
         register: kyverno_image_tag_cosign
       - name: Downloading Kyverno cli
         get_url:
-          url: https://github.com/kyverno/kyverno/releases/download/{{ kyverno_image_tag | quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          url: https://github.com/kyverno/kyverno/releases/download/{{ kyverno_image_tag |
+            quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
           dest: /root/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
           owner: root
           group: root
