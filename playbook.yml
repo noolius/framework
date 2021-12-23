@@ -99,7 +99,8 @@
           remote_src: true
       - name: Downloading Thanos cli
         get_url:
-          url: https://github.com/thanos-io/thanos/releases/download/v{{ thanos_cli_version | quote }}/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
+          url: https://github.com/thanos-io/thanos/releases/download/v{{ thanos_cli_version |
+            quote }}/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           dest: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           mode: '0400'
           checksum: sha256:17b3f65de7f6c019e9459bf7079df274072da0487f97167ccaa43dab2f37cb41
@@ -164,7 +165,8 @@
           - kubectl-cert_manager
       - name: Downloading Kustomize
         get_url:
-          url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F{{ kustomize_version | quote }}/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
+          url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F{{ kustomize_version |
+            quote }}/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
           dest: /root/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
           owner: root
           group: root
