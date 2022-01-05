@@ -3,14 +3,14 @@
     hosts: control_planes
     become: true
     vars:
-      linkerd_version: edge-21.12.3
+      linkerd_version: edge-21.12.4
       cilium_cli_version: v0.10.0
       hubble_version: v0.9.0
       cosign_version: v1.3.1
       helm_version: v3.7.2
       kapp_version: v0.43.0
-      crank_version: v1.5.1
-      thanos_cli_version: 0.23.2-rc.0
+      crank_version: v1.6.0
+      thanos_cli_version: 0.24.0
       kustomize_version: v4.4.1
       cf_version: 7.4.0
       certmanager_version: v1.6.1
@@ -60,7 +60,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:65edb675dda4a6863368e626701e7512a97a96a34b421ec070027b6ab5647172
+          checksum: sha256:c976f8a739a6ece7535977a185daf53ce797cb854628e208d7149bb79e22988f
       - name: Downloading and installing Crossplane cli
         get_url:
           url: https://releases.crossplane.io/stable/{{ crank_version | quote }}/bin/linux_amd64/crank
@@ -68,7 +68,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:8117370ef35e24dcfa6a4030b041800db862a28a4924cda9cde9b095b7c62b13
+          checksum: sha256:b96b34b3476b3180a72d568586142d61dee91e98aa5f97a24969ca6911401daa
       - name: Downloading Cilium cli
         get_url:
           url: https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version | quote }}/cilium-linux-amd64.tar.gz
@@ -103,7 +103,7 @@
             quote }}/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           dest: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:17b3f65de7f6c019e9459bf7079df274072da0487f97167ccaa43dab2f37cb41
+          checksum: sha256:0f27e3758434a82247ab31eaf19dc84d5d36b891b347c702df01c76d3c73ada5
       - name: Extracting Thanos cli
         unarchive:
           src: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
