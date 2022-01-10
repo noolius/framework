@@ -38,8 +38,15 @@ case "${1}" in
       xargs -P4 -I {} $x up {};
     fi
     ;;
+  update)
+    if test -f vagrant_loc -a -r vagrant_loc; then
+      x=$(. vagrant_loc && echo $v) && \
+      $x status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
+      xargs -P4 -I {} $x ssh {} -- "doas apk update && doas apk upgrade";
+    fi
+    ;;
   *)
-    echo "Please include provision, run, reload, or halt.";
+    echo "Please use provision, run, reload, update, or halt.";
     exit 1
     ;;
 esac
