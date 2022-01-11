@@ -3,14 +3,15 @@ set -eo pipefail
 case "${1}" in
   halt)
     if test -f vagrant_loc -a -r vagrant_loc; then
-      x=$(. vagrant_loc && echo $v) && \
-      $x status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} $x halt {};
+      # shellcheck disable=SC2154
+      x=$(. vagrant_loc && echo "$v") && \
+      "$x" status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
+      xargs -P4 -I {} "$x" halt {};
     fi
     ;;
   provision)
     if test -f vagrant_loc -a -r vagrant_loc; then
-      x=$(. vagrant_loc && echo $v) && \
+      x=$(. vagrant_loc && echo "$v") && \
       rm -f text && \
       if ! systemctl status salt-master >/dev/null; then
          rm -f pub_fingerprint
@@ -18,31 +19,31 @@ case "${1}" in
       else
          rm -f no_salt
          sudo -K && sudo salt-key -F master | awk '/pub/{print $2}' > pub_fingerprint
-	 sudo -K;
+	       sudo -K;
       fi && \
-      $x status | awk '/not created/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} $x up --provision {};
+      "$x" status | awk '/not created/{gsub(/ $/, "", $0);print $1}' | \
+      xargs -P4 -I {} "$x" up --provision {};
     fi
     ;;
   reload)
     if test -f vagrant_loc -a -r vagrant_loc; then
-      x=$(. vagrant_loc && echo $v) && \
-      $x status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} $x reload {};
+      x=$(. vagrant_loc && echo "$v") && \
+      "$x" status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
+      xargs -P4 -I {} "$x" reload {};
     fi
     ;;
   run)
     if test -f vagrant_loc -a -r vagrant_loc; then
-      x=$(. vagrant_loc && echo $v) && \
-      $x status | awk '/poweroff/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} $x up {};
+      x=$(. vagrant_loc && echo "$v") && \
+      "$x" status | awk '/poweroff/{gsub(/ $/, "", $0);print $1}' | \
+      xargs -P4 -I {} "$x" up {};
     fi
     ;;
   update)
     if test -f vagrant_loc -a -r vagrant_loc; then
-      x=$(. vagrant_loc && echo $v) && \
-      $x status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} $x ssh {} -- "doas apk update && doas apk upgrade";
+      x=$(. vagrant_loc && echo "$v") && \
+      "$x" status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
+      xargs -P4 -I {} "$x" ssh {} -- "doas apk update && doas apk upgrade";
     fi
     ;;
   *)
