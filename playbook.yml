@@ -9,7 +9,7 @@
       cosign_version: v1.4.1
       helm_version: v3.7.2
       kapp_version: v0.43.0
-      crank_version: v1.6.0
+      crank_version: v1.6.1
       thanos_cli_version: 0.24.0
       kustomize_version: v4.4.1
       cf_version: 7.4.0
@@ -68,7 +68,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:b96b34b3476b3180a72d568586142d61dee91e98aa5f97a24969ca6911401daa
+          checksum: sha256:4e31fed88e21ff7d9316d1366621979eeed357e4fc6b2474c0f9b3475da688b1
       - name: Downloading Cilium cli
         get_url:
           url: https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version | quote }}/cilium-linux-amd64.tar.gz
