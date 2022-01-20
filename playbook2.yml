@@ -96,7 +96,7 @@
                   - node2
                   - node3
                   - node4
-      cilium_version: 1.11.0
+      cilium_version: 1.11.1
       pod_network_cidr: 10.188.0.0/16
     tasks:
       - name: Creating KUBECONFIG dir for root user
