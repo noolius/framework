@@ -4,7 +4,7 @@
     become: true
     vars:
       linkerd_version: edge-22.1.4
-      cilium_cli_version: v0.10.0
+      cilium_cli_version: v0.10.1
       hubble_version: v0.9.0
       cosign_version: v1.4.1
       helm_version: v3.7.2
@@ -74,7 +74,7 @@
           url: https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version | quote }}/cilium-linux-amd64.tar.gz
           dest: /root/cilium-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:2a309542dc9504d3ee3583617fef98e5cb24cdb5e8578a52fa6584932bb2c46c
+          checksum: sha256:b907aebccc7c57786506a3ffa83108c548ecd45095ec31298acda28d75e40472
       - name: Installing Cilium cli
         unarchive:
           src: /root/cilium-linux-amd64.tar.gz
