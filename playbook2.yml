@@ -96,6 +96,30 @@
                   - node2
                   - node3
                   - node4
+      persistentvolume3_manifest: |
+        apiVersion: v1
+        kind: PersistentVolume
+        metadata:
+          name: pv-3
+        spec:
+          capacity:
+            storage: 10Gi
+          volumeMode: Filesystem
+          accessModes:
+          - ReadWriteOnce
+          persistentVolumeReclaimPolicy: Delete
+          local:
+            path: /srv
+          nodeAffinity:
+            required:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                  - node2
+                  - node3
+                  - node4
       cilium_version: 1.11.1
       pod_network_cidr: 10.188.0.0/16
     tasks:
@@ -226,6 +250,14 @@
           group: root
           mode: '0400'
           remote_src: true
+      - name: Writing PersistentVolume 3 manifest
+        copy:
+          content: '{{ persistentvolume3_manifest }}'
+          dest: /root/pv3_manif
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
         when: root_config is succeeded
@@ -239,6 +271,15 @@
         wait_for:
           port: '{{ k8s_serviceport | quote }}'
         register: apiserver_avail
+      - name: Registering local StorageClass and PersistentVolumes
+        ansible.builtin.command: /usr/bin/kubectl create -f "{{ item }}"
+        when: apiserver_avail is succeeded
+        loop:
+          - /root/sc_manif
+          - /root/pv1_manif
+          - /root/pv2_manif
+          - /root/pv3_manif
+        register: pv_available
       - name: Deploying Cilium using its Helm chart
         ansible.builtin.command: >
           /usr/local/bin/helm install cilium cilium/cilium --version {{ cilium_version | quote }} --namespace kube-system
@@ -255,64 +296,19 @@
           seconds: 35
         when: deploy_cilium.rc == 0
         register: waited_cilium
-      - name: Running Linkerd pre-install check
-        ansible.builtin.command: /usr/local/bin/linkerd check --pre
-        register: precheck_linkerd
-        when: waited_cilium is succeeded
-      - name: Installing Linkerd config
-        ansible.builtin.shell: >
-          set -o pipefail && /usr/local/bin/linkerd install config | /usr/bin/kubectl apply -f -
-        args:
-          warn: false
-          executable: /bin/bash
-        when: precheck_linkerd.rc == 0
-        register: installing_config_stage_linkerd
-      - name: Validating Linkerd config
-        ansible.builtin.command: /usr/local/bin/linkerd check config
-        register: validating_config_linkerd
-        when: installing_config_stage_linkerd is succeeded
+      - name: Installing Consul K8s
+        ansible.builtin.command: /usr/local/bin/consul-k8s install -auto-approve=true -preset=secure
+        register: installed_consul_k8s
+        when: pv_available.rc == 0 and waited_cilium is succeeded
       - name: Creating namespaces
         ansible.builtin.command: /usr/bin/kubectl create ns "{{ item }}"
         loop:
-          - linkerd-viz
           - crossplane-system
-        when: validating_config_linkerd.rc == 0
+        when: apiserver_avail is succeeded
         register: created_ns
-      - name: Annotating namespaces for Linkerd2 auto-injection
-        ansible.builtin.command: /usr/bin/kubectl annotate ns "{{ item }}" linkerd.io/inject=enabled
-        loop:
-          - crossplane-system
-        when: created_ns is succeeded
-      - name: Labeling ns/kube-system as per Linkerd2 HA best practice
-        ansible.builtin.command: /usr/bin/kubectl label ns/kube-system config.linkerd.io/admission-webhooks=disabled
-        when: validating_config_linkerd.rc == 0
-        register: label_ns_linkerd_ha
-      - name: Installing Linkerd control-plane
-        ansible.builtin.shell: >
-          set -o pipefail && /usr/local/bin/linkerd install --ha control-plane | /usr/bin/kubectl apply -f -
-        args:
-          warn: false
-          executable: /bin/bash
-        when: label_ns_linkerd_ha.rc == 0
-        register: installing_control_plane_linkerd
-      - name: Waiting for Linkerd deployment to settle (grace 90s)
-        pause:
-          seconds: 90
-        when: installing_control_plane_linkerd.rc == 0
-      - name: Validating Linkerd control-plane
-        ansible.builtin.command: /usr/local/bin/linkerd check
-        when: installing_control_plane_linkerd.rc == 0
-        register: ok_linkerd_check
       - name: Deploying Crossplane using its Helm chart
         ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
-        when: installing_control_plane_linkerd.rc == 0
-      - name: Registering local StorageClass and PersistentVolumes
-        ansible.builtin.command: /usr/bin/kubectl create -f "{{ item }}"
-        when: apiserver_avail is succeeded
-        loop:
-          - /root/sc_manif
-          - /root/pv1_manif
-          - /root/pv2_manif
+        when: created_ns.rc == 0 and installed_consul_k8s.rc == 0
       - name: Downloading Kyverno Cosign
         get_url:
           url: https://raw.githubusercontent.com/kyverno/kyverno/main/cosign.pub
@@ -376,7 +372,7 @@
         register: kyverno_transform
       - name: Deploying Kyverno via YAMLs
         ansible.builtin.command: /usr/bin/kubectl apply -k /root/
-        when: apiserver_avail is succeeded and kyverno_image_tag_cosign.rc == 0 and
+        when: installed_consul_k8s.rc == 0 and kyverno_image_tag_cosign.rc == 0 and
           download_kyverno_installation_yaml is succeeded and kyverno_kustomize is succeeded and
           kyverno_transform is succeeded
   - name: Provisioning Alpine 3.15 K8s (workers, post-first reboot)
