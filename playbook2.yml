@@ -310,7 +310,7 @@
         ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system
           crossplane-stable/crossplane
         when: created_ns is succeeded and installed_consul_k8s.rc == 0
-      - name: Downloading Kyverno Cosign
+      - name: Downloading Kyverno Cosign public key
         get_url:
           url: https://raw.githubusercontent.com/kyverno/kyverno/release-1.5/cosign.pub
           dest: /root/cosign.pub
@@ -320,9 +320,10 @@
           checksum: sha256:660cba4aacd38271f12f420a0b13177753d5dc1c6a3694be43e08c11ad54096e
         register: downloaded_kyverno_pubsign
       - name: Verifying Kyverno CR images
-        ansible.builtin.command: /usr/local/bin/cosign verify --key=/root/cosign.pub 
+        ansible.builtin.command: /usr/local/bin/cosign verify --key /root/cosign.pub
           ghcr.io/kyverno/kyverno:{{ kyverno_image_tag | quote }}
         when: downloaded_kyverno_pubsign is succeeded
+        ignore_errors: true
         register: kyverno_image_tag_cosign
       - name: Downloading Kyverno cli
         get_url:
