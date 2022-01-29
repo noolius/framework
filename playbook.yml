@@ -62,6 +62,11 @@
           group: root
           mode: '0400'
           checksum: sha256:fcea3f47d589e09c636d186ebbc0db7da2946954a9bd0a0c63ce6aafd3dea5a7
+      - name: Adding unzip package
+        community.general.apk:
+          name:
+            - unzip
+          state: latest
       - name: Installing consul-k8s cli
         unarchive:
           src: /root/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
