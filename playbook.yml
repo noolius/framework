@@ -7,7 +7,7 @@
       cilium_cli_version: v0.10.1
       hubble_version: v0.9.0
       cosign_version: v1.4.1
-      helm_version: v3.7.2
+      helm_version: v3.8.0
       kapp_version: v0.43.0
       crank_version: v1.6.1
       thanos_cli_version: 0.24.0
@@ -28,7 +28,7 @@
           url: https://get.helm.sh/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
           dest: /root/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:4ae30e48966aba5f807a4e140dad6736ee1a392940101e4d79ffb4ee86200a9e
+          checksum: sha256:8408c91e846c5b9ba15eb6b1a5a79fc22dd4d33ac6ea63388e5698d1b2320c8b
       - name: Extracting Helm cli
         unarchive:
           src: /root/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
