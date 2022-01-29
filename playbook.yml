@@ -144,7 +144,7 @@
           owner: root
           group: root
           state: link
-        when: installing_cf_v7_cli is succeeded
+        when: installing_cf_v8_cli is succeeded
       - name: Downloading kubectl cert-manager
         get_url:
           url: https://github.com/jetstack/cert-manager/releases/download/{{ certmanager_version | quote }}/kubectl-cert_manager-linux-amd64.tar.gz
