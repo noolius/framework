@@ -3,7 +3,7 @@
     hosts: control_planes
     become: true
     vars:
-      linkerd_version: edge-22.1.4
+      linkerd_version: edge-22.1.5
       cilium_cli_version: v0.10.1
       hubble_version: v0.9.0
       cosign_version: v1.4.1
@@ -60,7 +60,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:b475e74796a80bd45c67a1a04121ed31e3702f2474bc729330c483ed0e7c8fad
+          checksum: sha256:9b84800547bb7ac31b4d6d285f5fba95feb7095d5ae8a87284e390016a6f2f25
       - name: Downloading and installing Crossplane cli
         get_url:
           url: https://releases.crossplane.io/stable/{{ crank_version | quote }}/bin/linux_amd64/crank
