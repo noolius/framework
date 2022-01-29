@@ -12,7 +12,7 @@
       crank_version: v1.6.2
       thanos_cli_version: 0.24.0
       kustomize_version: v4.4.1
-      cf_version: 7.4.0
+      cf_version: 8.1.0
       certmanager_version: v1.6.1
     tasks:
       - name: Downloading cosign
@@ -120,26 +120,26 @@
           group: root
           mode: '0555'
           remote_src: true
-      - name: Downloading cf v7 cli
+      - name: Downloading cf v8 cli
         get_url:
           url: https://packages.cloudfoundry.org/stable?release=linux64-binary&version={{ cf_version | quote }}&source=github-rel
-          dest: /root/cf7-cli_{{ cf_version | quote }}_linux_x86-64.tgz
+          dest: /root/cf8-cli_{{ cf_version | quote }}_linux_x86-64.tgz
           mode: '0400'
-          checksum: sha256:6ac44598c580fe24c98f3b52df2e6357116478c68dee5c74800cb39cba421695
-      - name: Installing cf v7 cli
+          checksum: sha256:2bc4c178b47bed712422d94399a6cc9acc92d21c6a640392ec7181b0c1bce5d0
+      - name: Installing cf v8 cli
         unarchive:
-          src: /root/cf7-cli_{{ cf_version | quote }}_linux_x86-64.tgz
+          src: /root/cf8-cli_{{ cf_version | quote }}_linux_x86-64.tgz
           dest: /usr/local/bin
           owner: root
           group: root
           mode: '0555'
           remote_src: true
           extra_opts:
-          - cf7
-        register: installing_cf_v7_cli
-      - name: Symlinking cf v7 cli
+          - cf8
+        register: installing_cf_v8_cli
+      - name: Symlinking cf v8 cli
         file:
-          src: /usr/local/bin/cf7
+          src: /usr/local/bin/cf8
           dest: /usr/local/bin/cf
           owner: root
           group: root
