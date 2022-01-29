@@ -8,7 +8,7 @@
       hubble_version: v0.9.0
       cosign_version: v1.4.1
       helm_version: v3.8.0
-      kapp_version: v0.43.0
+      kapp_version: v0.45.0
       crank_version: v1.6.2
       thanos_cli_version: 0.24.0
       kustomize_version: v4.4.1
@@ -52,7 +52,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:f8669039dfba001081c94576c898d10aba28ecceffcd98708e8f2c87c13109e4
+          checksum: sha256:9d2c0441729bebe49e5fb9a1a7b7088f0bee4092ba23e267339a9478948c5731
       - name: Downloading and installing Linkerd2 cli
         get_url:
           url: https://github.com/linkerd/linkerd2/releases/download/{{ linkerd_version | quote }}/linkerd2-cli-{{ linkerd_version | quote }}-linux-amd64
