@@ -17,6 +17,7 @@
     become: true
     vars:
       kyverno_image_tag: v1.5.8
+      kyverno_branch: release-1.5
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
       storageclass_manifest: |
@@ -312,7 +313,7 @@
         when: created_ns is succeeded and installed_consul_k8s.rc == 0
       - name: Downloading Kyverno Cosign public key
         get_url:
-          url: https://raw.githubusercontent.com/kyverno/kyverno/release-1.5/cosign.pub
+          url: https://raw.githubusercontent.com/kyverno/kyverno/{{ kyverno_branch | quote }}/cosign.pub
           dest: /root/cosign.pub
           owner: root
           group: root
@@ -348,7 +349,8 @@
         when: downloaded_kyverno_cli is succeeded
       - name: Downloading Kyverno installation YAML
         get_url:
-          url: https://raw.githubusercontent.com/kyverno/kyverno/release-1.5/definitions/release/install.yaml
+          url: https://raw.githubusercontent.com/kyverno/kyverno/{{ kyverno_branch |
+            quote }}/definitions/release/install.yaml
           dest: /root/install.yaml
           owner: root
           group: root
