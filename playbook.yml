@@ -6,7 +6,7 @@
       linkerd_version: edge-22.1.5
       cilium_cli_version: v0.10.1
       hubble_version: v0.9.0
-      cosign_version: v1.4.1
+      cosign_version: v1.5.0
       helm_version: v3.8.0
       kapp_version: v0.45.0
       crank_version: v1.6.2
@@ -22,7 +22,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:08ba779a4e6ff827079abed1a6d1f0a0d9e48aea21f520ddeb42ff912f59d268
+          checksum: sha256:5bf1aa3ff4bd129c478e16e0b83febf3cc1b91b9daed60be31e8c6614a99b021
       - name: Downloading Helm cli
         get_url:
           url: https://get.helm.sh/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
