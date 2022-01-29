@@ -279,6 +279,7 @@
           - /root/pv1_manif
           - /root/pv2_manif
           - /root/pv3_manif
+        register: local_sc_pv
       - name: Deploying Cilium using its Helm chart
         ansible.builtin.command: >
           /usr/local/bin/helm install cilium cilium/cilium --version {{ cilium_version | quote }} --namespace kube-system
@@ -298,7 +299,7 @@
       - name: Installing Consul K8s
         ansible.builtin.command: /usr/local/bin/consul-k8s install -auto-approve=true -preset=secure
         register: installed_consul_k8s
-        when: waited_cilium is succeeded
+        when: waited_cilium is succeeded and local_sc_pv is succeeded
       - name: Creating namespaces
         ansible.builtin.command: /usr/bin/kubectl create ns "{{ item }}"
         loop:
@@ -307,7 +308,7 @@
         register: created_ns
       - name: Deploying Crossplane using its Helm chart
         ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
-        when: created_ns.rc == 0 and installed_consul_k8s.rc == 0
+        when: created_ns is succeeded and installed_consul_k8s.rc == 0
       - name: Downloading Kyverno Cosign
         get_url:
           url: https://raw.githubusercontent.com/kyverno/kyverno/main/cosign.pub
