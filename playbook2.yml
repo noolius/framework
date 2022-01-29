@@ -279,7 +279,6 @@
           - /root/pv1_manif
           - /root/pv2_manif
           - /root/pv3_manif
-        register: pv_available
       - name: Deploying Cilium using its Helm chart
         ansible.builtin.command: >
           /usr/local/bin/helm install cilium cilium/cilium --version {{ cilium_version | quote }} --namespace kube-system
@@ -299,7 +298,7 @@
       - name: Installing Consul K8s
         ansible.builtin.command: /usr/local/bin/consul-k8s install -auto-approve=true -preset=secure
         register: installed_consul_k8s
-        when: pv_available.rc == 0 and waited_cilium is succeeded
+        when: waited_cilium is succeeded
       - name: Creating namespaces
         ansible.builtin.command: /usr/bin/kubectl create ns "{{ item }}"
         loop:
