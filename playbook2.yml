@@ -121,6 +121,27 @@
                   - node2
                   - node3
                   - node4
+      configmap_yaml_metallb: |
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          namespace: metallb-system
+          name: config
+        data:
+          config: |
+            address-pools:
+            - name: default
+              protocol: layer2
+              addresses:
+              - 10.199.1.0-10.199.10.250
+              avoid-buggy-ips: true
+      kustomization_yaml_metallb: |
+        namespace: metallb-system
+        resources:
+         - github.com/metallb/metallb//manifests?ref=v0.11.0
+         - configmap.yml
+      kyverno_prefix: /root/kyverno
+      metallb_prefix: /root/metallb
       cilium_version: 1.11.1
       pod_network_cidr: 10.188.0.0/16
     tasks:
@@ -227,7 +248,7 @@
           group: vagrant
           mode: '0600'
           remote_src: true
-      - name: Writing StorageClass manifest
+      - name: Copying StorageClass manifest
         copy:
           content: '{{ storageclass_manifest }}'
           dest: /root/sc_manif
@@ -235,7 +256,7 @@
           group: root
           mode: '0400'
           remote_src: true
-      - name: Writing PersistentVolume 1 manifest
+      - name: Copying PersistentVolume 1 manifest
         copy:
           content: '{{ persistentvolume1_manifest }}'
           dest: /root/pv1_manif
@@ -243,7 +264,7 @@
           group: root
           mode: '0400'
           remote_src: true
-      - name: Writing PersistentVolume 2 manifest
+      - name: Copying PersistentVolume 2 manifest
         copy:
           content: '{{ persistentvolume2_manifest }}'
           dest: /root/pv2_manif
@@ -251,7 +272,7 @@
           group: root
           mode: '0400'
           remote_src: true
-      - name: Writing PersistentVolume 3 manifest
+      - name: Copying PersistentVolume 3 manifest
         copy:
           content: '{{ persistentvolume3_manifest }}'
           dest: /root/pv3_manif
@@ -259,6 +280,34 @@
           group: root
           mode: '0400'
           remote_src: true
+      - name: Creating directory for MetalLB Kustomization
+        file:
+          path: '{{ metallb_prefix | quote }}'
+          state: directory
+          owner: root
+          group: root
+          mode: '0700'
+        register: dir_metallb_kustomize
+      - name: Copying Kustomization manifest for MetalLB
+        copy:
+          content: '{{ kustomization_yaml_metallb }}'
+          dest: '{{ metallb_prefix | quote }}/kustomization.yaml'
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
+        when: dir_metallb_kustomize is succeeded
+        register: copied_metallb_kustomize
+      - name: Copying ConfigMap for MetalLB (Layer 2)
+        copy:
+          content: '{{ configmap_yaml_metallb }}'
+          dest: '{{ metallb_prefix | quote }}/configmap.yml'
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
+        when: dir_metallb_kustomize is succeeded
+        register: copied_metallb_cm
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
         when: root_config is succeeded
@@ -297,6 +346,10 @@
           seconds: 35
         when: deploy_cilium.rc == 0
         register: waited_cilium
+      - name: Deploying MetalLB via YAMLs
+        ansible.builtin.command: /usr/bin/kubectl apply -k {{ metallb_prefix | quote }}
+        when: waited_cilium is succeeded and copied_metallb_kustomize is succeeded and
+          copied_metallb_cm is succeeded
       - name: Installing Consul K8s
         ansible.builtin.command: /usr/local/bin/consul-k8s install -auto-approve=true -preset=secure
         register: installed_consul_k8s
@@ -311,17 +364,26 @@
         ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system
           crossplane-stable/crossplane
         when: created_ns is succeeded and installed_consul_k8s.rc == 0
+      - name: Creating directory for Kyverno Kustomization and components
+        file:
+          path: '{{ kyverno_prefix | quote }}'
+          state: directory
+          owner: root
+          group: root
+          mode: '0700'
+        register: dir_kyverno_kustomize
       - name: Downloading Kyverno Cosign public key
         get_url:
           url: https://raw.githubusercontent.com/kyverno/kyverno/{{ kyverno_branch | quote }}/cosign.pub
-          dest: /root/cosign.pub
+          dest: '{{ kyverno_prefix | quote }}/cosign.pub'
           owner: root
           group: root
           mode: '0400'
           checksum: sha256:660cba4aacd38271f12f420a0b13177753d5dc1c6a3694be43e08c11ad54096e
         register: downloaded_kyverno_pubsign
+        when: dir_kyverno_kustomize is succeeded
       - name: Verifying Kyverno CR images
-        ansible.builtin.command: /usr/local/bin/cosign verify --key /root/cosign.pub
+        ansible.builtin.command: /usr/local/bin/cosign verify --key {{ kyverno_prefix | quote }}/cosign.pub
           ghcr.io/kyverno/kyverno:{{ kyverno_image_tag | quote }}
         when: downloaded_kyverno_pubsign is succeeded
         ignore_errors: true
@@ -330,7 +392,7 @@
         get_url:
           url: https://github.com/kyverno/kyverno/releases/download/{{ kyverno_image_tag |
             quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
-          dest: /root/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          dest: '{{ kyverno_prefix | quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz'
           owner: root
           group: root
           mode: '0400'
@@ -338,7 +400,7 @@
         register: downloaded_kyverno_cli
       - name: Installing Kyverno cli
         unarchive:
-          src: /root/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          src: '{{ kyverno_prefix | quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz'
           dest: /usr/local/bin
           owner: root
           group: root
@@ -351,7 +413,7 @@
         get_url:
           url: https://raw.githubusercontent.com/kyverno/kyverno/{{ kyverno_branch |
             quote }}/definitions/release/install.yaml
-          dest: /root/install.yaml
+          dest: '{{ kyverno_prefix | quote }}/install.yaml'
           owner: root
           group: root
           mode: '0400'
@@ -360,7 +422,7 @@
       - name: Copying Kyverno Kustomization
         copy:
           content: "{{ install_kyverno_kustomize }}"
-          dest: /root/kustomization.yaml
+          dest: '{{ kyverno_prefix | quote }}/kustomization.yaml'
           owner: root
           group: root
           mode: '0400'
@@ -369,14 +431,14 @@
       - name: Copying Kyverno Transformation
         copy:
           content: "{{ kyverno_transformation }}"
-          dest: /root/annotations-kyverno.yaml
+          dest: '{{ kyverno_prefix | quote }}/annotations-kyverno.yaml'
           owner: root
           group: root
           mode: '0400'
           remote_src: true
         register: kyverno_transform
       - name: Deploying Kyverno via YAMLs
-        ansible.builtin.command: /usr/bin/kubectl apply -k /root/
+        ansible.builtin.command: /usr/bin/kubectl apply -k {{ kyverno_prefix | quote }}
         when: installed_consul_k8s.rc == 0 and kyverno_image_tag_cosign.rc == 0 and
           download_kyverno_installation_yaml is succeeded and kyverno_kustomize is succeeded and
           kyverno_transform is succeeded
