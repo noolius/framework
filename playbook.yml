@@ -346,8 +346,7 @@
             - etcd-ctl
             - kubectl
             - patch
-            - yq
-            - librdkafka
+            - git
             - yajl
             - coreutils
           state: latest
