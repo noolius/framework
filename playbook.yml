@@ -346,6 +346,7 @@
             - etcd-ctl
             - kubectl
             - patch
+            - arping
             - git
             - yajl
             - coreutils
