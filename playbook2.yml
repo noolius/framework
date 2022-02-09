@@ -402,12 +402,12 @@
       - name: Downloading Kyverno installation YAML
         get_url:
           url: https://raw.githubusercontent.com/kyverno/kyverno/{{ kyverno_branch |
-            quote }}/definitions/release/install.yaml
+            quote }}/config/install.yaml
           dest: '{{ kyverno_prefix | quote }}/install.yaml'
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:92f29e2a501f0a105911b3c7d8f0be71dcc7b415d2f8a6cedf83fec8573fd88d
+          checksum: sha256:36040e11630c4730df1a279ecc29ac6aabfd03b7b3790fc192b574b4125b56d0
         register: download_kyverno_installation_yaml
       - name: Copying Kyverno Kustomization
         copy:
