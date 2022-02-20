@@ -12,7 +12,7 @@
       crank_version: v1.6.2
       thanos_cli_version: 0.24.0
       kustomize_version: v4.4.1
-      cf_version: 8.1.0
+      cf_version: 8.2.0
       certmanager_version: v1.6.1
     tasks:
       - name: Downloading cosign
@@ -139,7 +139,7 @@
           url: https://packages.cloudfoundry.org/stable?release=linux64-binary&version={{ cf_version | quote }}&source=github-rel
           dest: /root/cf8-cli_{{ cf_version | quote }}_linux_x86-64.tgz
           mode: '0400'
-          checksum: sha256:2bc4c178b47bed712422d94399a6cc9acc92d21c6a640392ec7181b0c1bce5d0
+          checksum: sha256:dadbb24dba7ef41f935b72f70d66b9b9c78df1781f67682ad0c116be92644693
       - name: Installing cf v8 cli
         unarchive:
           src: /root/cf8-cli_{{ cf_version | quote }}_linux_x86-64.tgz
