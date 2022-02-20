@@ -308,15 +308,21 @@
           remote_src: true
         when: dir_metallb_kustomize is succeeded
         register: copied_metallb_cm
+      - name: Checking how to use Helm
+        ansible.builtin.stat:
+          path: /usr/local/bin/helm
+        register: helm_exist
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
-        when: root_config is succeeded
+        when: root_config is succeeded and helm_exist.stat.exists
+        register: helm_added_cilium
       - name: Adding Crossplane's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add crossplane-stable https://charts.crossplane.io/stable
-        when: root_config is succeeded
+        when: root_config is succeeded and helm_exist.stat.exists
       - name: Updating Helm repos
         ansible.builtin.command: /usr/local/bin/helm repo update
-        when: root_config is succeeded
+        when: root_config is succeeded and helm_exist.stat.exists and helm_added_cilium.rc == 0
+        register: helm_updated
       - name: Waiting for api-server to become available
         wait_for:
           port: '{{ k8s_serviceport | quote }}'
@@ -339,7 +345,7 @@
           --set l7Proxy=false --set encryption.enabled=true --set encryption.type=wireguard
           --set bandwidthManager=true
           --set hostFirewall.enabled=true --set devices='{eth0,eth1}'
-        when: apiserver_avail is succeeded
+        when: apiserver_avail is succeeded and helm_updated.rc == 0
         register: deploy_cilium
       - name: Waiting for Cilium deployment to settle (grace 35s)
         pause:
@@ -372,12 +378,17 @@
           group: root
           mode: '0700'
         register: dir_kyverno_kustomize
+      - name: Checking how to verify Kyverno CR images
+        ansible.builtin.stat:
+          path: /usr/local/bin/cosign
+        register: cosign_exist
       - name: Verifying Kyverno CR images
         ansible.builtin.command: /usr/local/bin/cosign verify ghcr.io/kyverno/kyverno:{{ kyverno_image_tag | quote }}
         ignore_errors: true
         register: kyverno_image_tag_cosign
         environment:
           COSIGN_EXPERIMENTAL: '1'
+        when: cosign_exist.stat.exists
       - name: Downloading Kyverno cli
         get_url:
           url: https://github.com/kyverno/kyverno/releases/download/{{ kyverno_image_tag |
