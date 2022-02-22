@@ -8,7 +8,7 @@
       hubble_version: v0.9.0
       cosign_version: v1.5.0
       helm_version: v3.8.0
-      kapp_version: v0.45.0
+      kapp_version: v0.46.0
       crank_version: v1.6.3
       thanos_cli_version: 0.24.0
       kustomize_version: v4.4.1
@@ -52,7 +52,7 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:9d2c0441729bebe49e5fb9a1a7b7088f0bee4092ba23e267339a9478948c5731
+          checksum: sha256:130f648cd921761b61bb03d7a0f535d1eea26e0b5fc60e2839af73f4ea98e22f
       - name: Downloading consul-k8s cli
         get_url:
           url: https://releases.hashicorp.com/consul-k8s/{{ consul_k8s_version |
