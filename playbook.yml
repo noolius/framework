@@ -334,6 +334,8 @@
         service:
           name: mount_rshared
           enabled: true
+      - name: Rebooting node
+        reboot:
   - name: Provisioning Alpine 3.15 K8s (control-planes...more)
     hosts: control_planes
     become: true

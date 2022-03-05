@@ -1,14 +1,14 @@
 # What's here?
 
-Bash scripts and Ansible playbooks to proof-of-concept a local Alpine Linux cluster with Cloud Foundry
+Bash scripts and Ansible playbooks to proof-of-concept a local Alpine Linux Kubernetes cluster
 
 # Why not k0s/K3s/microK8s/RKE2...?
 
-- Local (no "free"-tier AWS/Azure/GCP/Oracle//IBM Cloud/requiring submitting credit card details)
+- Local (not "free"-tier AWS/Azure/GCP/Oracle/IBM Cloud/requiring submitting credit card details)
 - Alpine Linux nodes
 - No Docker
 - Cilium (see Caveats)
-- Vagrant
+- Vagrant (but not Packer)
 - Ansible
 - sh and awk
 
@@ -24,7 +24,7 @@ Bash scripts and Ansible playbooks to proof-of-concept a local Alpine Linux clus
 - systemd-based
 - VirtualBox 6.1+
 - Ansible (-base 2.10.7+, << 2.11; see Caveats) with ``community.general`` and ``ansible.posix`` galaxy collections
-- Vagrant 2.2+ with [``vagrant-reload``](https://github.com/aidanns/vagrant-reload) and [``vagrant-sshfs``](https://github.com/dustymabe/vagrant-sshfs) plugins
+- Vagrant 2.2+ with [``vagrant-sshfs``](https://github.com/dustymabe/vagrant-sshfs) plugins
 
 (Of course, you also can modify the scripts and playbooks with replacements for systemd and VirtualBox, thereby rendering it viable on myriad platforms.)
 
@@ -59,7 +59,7 @@ versus
 
 Versioned URIs in the Ansible playbooks should be OK, but "latest" URLs will break since they're associated with SHA256sums.
 
-If using Mitogen v0.3.0 on the host with Ansible (see [this note](https://mitogen.networkgenomics.com/ansible_detailed.html) and [these GitHub tags](https://github.com/mitogen-hq/mitogen/tags)), use the python2 Alpine apk (instead of python3) in the shell provision section of ``Vagrantfile``. On the host, PyPy 7.3.7 do not work with Mitogen; you'll need to use CPython (tested with 3.10).
+If using Mitogen v0.3.0 on the host with Ansible (see [this note](https://mitogen.networkgenomics.com/ansible_detailed.html) and [these GitHub tags](https://github.com/mitogen-hq/mitogen/tags)), use the python2 Alpine apk (instead of python3) in the shell provision section of ``Vagrantfile``. On the host, PyPy* 7.3.8 do not work with Mitogen; you'll need to use CPython (tested with 3.10).
 
 Cilium is configured to encipher inter-node traffic using WireGuard(tm), so expect several of the ``cilium connectivity test``s to fail.
 
