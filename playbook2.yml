@@ -16,7 +16,7 @@
     hosts: control_planes
     become: true
     vars:
-      kyverno_image_tag: v1.6.1-rc1
+      kyverno_image_tag: v1.6.1
       kyverno_branch: release-1.6
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
@@ -397,7 +397,7 @@
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:58573dad0a8dc20a289f8acae4ed3e2bd458a7574e7ac4cfb147886758242ba8
+          checksum: sha256:89e06c4a0c2a0378b03abc0596e51ad61b59ba81a645be866f5120531816813d
         register: downloaded_kyverno_cli
       - name: Installing Kyverno cli
         unarchive:
@@ -418,7 +418,7 @@
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:c8a3d250c2b9319090bcc50dab8a39be957cef4db387776505bac4964a1da94b
+          checksum: sha256:228d16212a422d7953493f6b44cb27ed55685372a2ac87f5911557b01b755b17
         register: download_kyverno_installation_yaml
       - name: Copying Kyverno Kustomization
         copy:
