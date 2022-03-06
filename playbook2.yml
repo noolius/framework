@@ -461,9 +461,20 @@
         wait_for:
           path: /vagrant/text
           search_regex: 'sha256'
-        register: got_token_and_hash
+        register: got_token_and_hash_pre
         async: 600
-        poll: 20
+        poll: 0
+      - name: Checking node registration token +hash
+        async_status:
+          jid: "{{ got_token_and_hash_pre.ansible_job_id }}"
+        register: got_token_and_hash
+        until: got_token_and_hash.finished
+        retries: 6
+        delay: 100
+      - name: Cleaning async job status
+        async_status:
+          mode: cleanup
+          jid: "{{ got_token_and_hash_pre.ansible_job_id }}"
       - name: Setting node registration token
         ansible.builtin.command: awk '/^kubeadm/ {print $5}' /vagrant/text
         when: got_token_and_hash is succeeded
