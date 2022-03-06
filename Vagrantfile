@@ -35,6 +35,7 @@ Vagrant.configure("2") do |config|
     }
     ansible.playbook = "playbook.yml"
   end
+  config.vm.provision :reload
   config.vm.provision "ansible" do |ansible|
     ansible.groups = {
 	"control_planes" => ["node1"],
