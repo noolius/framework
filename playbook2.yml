@@ -418,7 +418,7 @@
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:228d16212a422d7953493f6b44cb27ed55685372a2ac87f5911557b01b755b17
+          checksum: sha256:522654c175d705705642f14f2a65bddb1d7144a433007306e6eb255e02259d5c
         register: download_kyverno_installation_yaml
       - name: Copying Kyverno Kustomization
         copy:
