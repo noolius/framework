@@ -11,7 +11,7 @@
       kapp_version: v0.46.0
       crank_version: v1.6.4
       thanos_cli_version: 0.25.0
-      kustomize_version: v4.4.1
+      kustomize_version: v4.5.2
       cf_version: 8.2.0
       certmanager_version: v1.6.1
     tasks:
@@ -185,7 +185,7 @@
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:2d5927efec40ba32a121c49f6df9955b8b8a296ef1dec4515a46fc84df158798
+          checksum: sha256:c4215332da8da16ddeb88e218d8dceb76c85b366a5c58d012bc5ece904bf2fd0
       - name: Installing Kustomize
         unarchive:
           src: /root/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
