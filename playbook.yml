@@ -3,7 +3,7 @@
     hosts: control_planes
     become: true
     vars:
-      consul_k8s_version: 0.40.0
+      consul_k8s_version: 0.41.1
       cilium_cli_version: v0.10.4
       hubble_version: v0.9.0
       cosign_version: v1.5.2
@@ -61,7 +61,7 @@
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:fcea3f47d589e09c636d186ebbc0db7da2946954a9bd0a0c63ce6aafd3dea5a7
+          checksum: sha256:0c59cb11bed051e57dbeabac557bc40714bb74a907786f19fb15f88027d2c6ef
       - name: Adding unzip package
         community.general.apk:
           name:
