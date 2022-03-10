@@ -13,7 +13,7 @@
       thanos_cli_version: 0.25.0
       kustomize_version: v4.5.2
       cf_version: 8.2.0
-      certmanager_version: v1.6.1
+      certmanager_version: v1.7.1
     tasks:
       - name: Downloading cosign
         get_url:
@@ -161,12 +161,12 @@
         when: installing_cf_v8_cli is succeeded
       - name: Downloading kubectl cert-manager
         get_url:
-          url: https://github.com/jetstack/cert-manager/releases/download/{{ certmanager_version | quote }}/kubectl-cert_manager-linux-amd64.tar.gz
+          url: https://github.com/cert-manager/cert-manager/releases/download/{{ certmanager_version | quote }}/kubectl-cert_manager-linux-amd64.tar.gz
           dest: /root/kubectl-cert_manager-linux-amd64.tar.gz
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:cf9cb0b1020cc437d431805be4baf2bc9de6de0b06e7821b0dd7d5d598cc1f36
+          checksum: sha256:f5a2741db8f5f5db4ab7ad041561b4c541a1ae35923053deadb0afb0e8c16cef
       - name: Installing kubectl cert-manager
         unarchive:
           src: /root/kubectl-cert_manager-linux-amd64.tar.gz
