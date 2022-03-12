@@ -16,7 +16,8 @@
     hosts: control_planes
     become: true
     vars:
-      kyverno_image_tag: v1.5.8
+      kyverno_image_tag: v1.6.1
+      kyverno_branch: release-1.6
       apiserver: 192.168.133.10
       k8s_serviceport: 6443
       storageclass_manifest: |
@@ -96,7 +97,52 @@
                   - node2
                   - node3
                   - node4
-      cilium_version: 1.11.1
+      persistentvolume3_manifest: |
+        apiVersion: v1
+        kind: PersistentVolume
+        metadata:
+          name: pv-3
+        spec:
+          capacity:
+            storage: 10Gi
+          volumeMode: Filesystem
+          accessModes:
+          - ReadWriteOnce
+          persistentVolumeReclaimPolicy: Delete
+          local:
+            path: /srv
+          nodeAffinity:
+            required:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                  - node2
+                  - node3
+                  - node4
+      configmap_yaml_metallb: |
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          namespace: metallb-system
+          name: config
+        data:
+          config: |
+            address-pools:
+            - name: default
+              protocol: layer2
+              addresses:
+              - 10.199.1.0-10.199.10.250
+              avoid-buggy-ips: true
+      kustomization_yaml_metallb: |
+        namespace: metallb-system
+        resources:
+         - github.com/metallb/metallb//manifests?ref=v0.11.0
+         - configmap.yml
+      kyverno_prefix: /root/kyverno
+      metallb_prefix: /root/metallb
+      cilium_version: 1.12.0-rc0
       pod_network_cidr: 10.188.0.0/16
     tasks:
       - name: Creating KUBECONFIG dir for root user
@@ -202,7 +248,7 @@
           group: vagrant
           mode: '0600'
           remote_src: true
-      - name: Writing StorageClass manifest
+      - name: Copying StorageClass manifest
         copy:
           content: '{{ storageclass_manifest }}'
           dest: /root/sc_manif
@@ -210,7 +256,7 @@
           group: root
           mode: '0400'
           remote_src: true
-      - name: Writing PersistentVolume 1 manifest
+      - name: Copying PersistentVolume 1 manifest
         copy:
           content: '{{ persistentvolume1_manifest }}'
           dest: /root/pv1_manif
@@ -218,7 +264,7 @@
           group: root
           mode: '0400'
           remote_src: true
-      - name: Writing PersistentVolume 2 manifest
+      - name: Copying PersistentVolume 2 manifest
         copy:
           content: '{{ persistentvolume2_manifest }}'
           dest: /root/pv2_manif
@@ -226,19 +272,70 @@
           group: root
           mode: '0400'
           remote_src: true
+      - name: Copying PersistentVolume 3 manifest
+        copy:
+          content: '{{ persistentvolume3_manifest }}'
+          dest: /root/pv3_manif
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
+      - name: Creating directory for MetalLB Kustomization
+        file:
+          path: '{{ metallb_prefix | quote }}'
+          state: directory
+          owner: root
+          group: root
+          mode: '0700'
+        register: dir_metallb_kustomize
+      - name: Copying Kustomization manifest for MetalLB
+        copy:
+          content: '{{ kustomization_yaml_metallb }}'
+          dest: '{{ metallb_prefix | quote }}/kustomization.yaml'
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
+        when: dir_metallb_kustomize is succeeded
+        register: copied_metallb_kustomize
+      - name: Copying ConfigMap for MetalLB (Layer 2)
+        copy:
+          content: '{{ configmap_yaml_metallb }}'
+          dest: '{{ metallb_prefix | quote }}/configmap.yml'
+          owner: root
+          group: root
+          mode: '0400'
+          remote_src: true
+        when: dir_metallb_kustomize is succeeded
+        register: copied_metallb_cm
+      - name: Checking how to use Helm
+        ansible.builtin.stat:
+          path: /usr/local/bin/helm
+        register: helm_exist
       - name: Adding Cilium's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add cilium https://helm.cilium.io/
-        when: root_config is succeeded
+        when: root_config is succeeded and helm_exist.stat.exists
+        register: helm_added_cilium
       - name: Adding Crossplane's Helm charts
         ansible.builtin.command: /usr/local/bin/helm repo add crossplane-stable https://charts.crossplane.io/stable
-        when: root_config is succeeded
+        when: root_config is succeeded and helm_exist.stat.exists
       - name: Updating Helm repos
         ansible.builtin.command: /usr/local/bin/helm repo update
-        when: root_config is succeeded
+        when: root_config is succeeded and helm_exist.stat.exists and helm_added_cilium.rc == 0
+        register: helm_updated
       - name: Waiting for api-server to become available
         wait_for:
           port: '{{ k8s_serviceport | quote }}'
         register: apiserver_avail
+      - name: Registering local StorageClass and PersistentVolumes
+        ansible.builtin.command: /usr/bin/kubectl create -f "{{ item }}"
+        when: apiserver_avail is succeeded
+        loop:
+          - /root/sc_manif
+          - /root/pv1_manif
+          - /root/pv2_manif
+          - /root/pv3_manif
+        register: local_sc_pv
       - name: Deploying Cilium using its Helm chart
         ansible.builtin.command: >
           /usr/local/bin/helm install cilium cilium/cilium --version {{ cilium_version | quote }} --namespace kube-system
@@ -248,97 +345,63 @@
           --set l7Proxy=false --set encryption.enabled=true --set encryption.type=wireguard
           --set bandwidthManager=true
           --set hostFirewall.enabled=true --set devices='{eth0,eth1}'
-        when: apiserver_avail is succeeded
+        when: apiserver_avail is succeeded and helm_updated.rc == 0
         register: deploy_cilium
       - name: Waiting for Cilium deployment to settle (grace 35s)
         pause:
           seconds: 35
         when: deploy_cilium.rc == 0
         register: waited_cilium
-      - name: Running Linkerd pre-install check
-        ansible.builtin.command: /usr/local/bin/linkerd check --pre
-        register: precheck_linkerd
-        when: waited_cilium is succeeded
-      - name: Installing Linkerd config
-        ansible.builtin.shell: >
-          set -o pipefail && /usr/local/bin/linkerd install config | /usr/bin/kubectl apply -f -
-        args:
-          warn: false
-          executable: /bin/bash
-        when: precheck_linkerd.rc == 0
-        register: installing_config_stage_linkerd
-      - name: Validating Linkerd config
-        ansible.builtin.command: /usr/local/bin/linkerd check config
-        register: validating_config_linkerd
-        when: installing_config_stage_linkerd is succeeded
+      - name: Deploying MetalLB via YAMLs
+        ansible.builtin.command: /usr/bin/kubectl apply -k {{ metallb_prefix | quote }}
+        when: waited_cilium is succeeded and copied_metallb_kustomize is succeeded and
+          copied_metallb_cm is succeeded
+      - name: Installing Consul K8s
+        ansible.builtin.command: /usr/local/bin/consul-k8s install -auto-approve=true -preset=secure
+        register: installed_consul_k8s
+        when: waited_cilium is succeeded and local_sc_pv is succeeded
       - name: Creating namespaces
         ansible.builtin.command: /usr/bin/kubectl create ns "{{ item }}"
         loop:
-          - linkerd-viz
           - crossplane-system
-        when: validating_config_linkerd.rc == 0
-        register: created_ns
-      - name: Annotating namespaces for Linkerd2 auto-injection
-        ansible.builtin.command: /usr/bin/kubectl annotate ns "{{ item }}" linkerd.io/inject=enabled
-        loop:
-          - crossplane-system
-        when: created_ns is succeeded
-      - name: Labeling ns/kube-system as per Linkerd2 HA best practice
-        ansible.builtin.command: /usr/bin/kubectl label ns/kube-system config.linkerd.io/admission-webhooks=disabled
-        when: validating_config_linkerd.rc == 0
-        register: label_ns_linkerd_ha
-      - name: Installing Linkerd control-plane
-        ansible.builtin.shell: >
-          set -o pipefail && /usr/local/bin/linkerd install --ha control-plane | /usr/bin/kubectl apply -f -
-        args:
-          warn: false
-          executable: /bin/bash
-        when: label_ns_linkerd_ha.rc == 0
-        register: installing_control_plane_linkerd
-      - name: Waiting for Linkerd deployment to settle (grace 90s)
-        pause:
-          seconds: 90
-        when: installing_control_plane_linkerd.rc == 0
-      - name: Validating Linkerd control-plane
-        ansible.builtin.command: /usr/local/bin/linkerd check
-        when: installing_control_plane_linkerd.rc == 0
-        register: ok_linkerd_check
-      - name: Deploying Crossplane using its Helm chart
-        ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
-        when: installing_control_plane_linkerd.rc == 0
-      - name: Registering local StorageClass and PersistentVolumes
-        ansible.builtin.command: /usr/bin/kubectl create -f "{{ item }}"
         when: apiserver_avail is succeeded
-        loop:
-          - /root/sc_manif
-          - /root/pv1_manif
-          - /root/pv2_manif
-      - name: Downloading Kyverno Cosign
-        get_url:
-          url: https://raw.githubusercontent.com/kyverno/kyverno/main/cosign.pub
-          dest: /root/cosign.pub
+        register: created_ns
+      - name: Deploying Crossplane using its Helm chart
+        ansible.builtin.command: /usr/local/bin/helm install crossplane --namespace crossplane-system
+          crossplane-stable/crossplane
+        when: created_ns is succeeded and installed_consul_k8s.rc == 0
+      - name: Creating directory for Kyverno Kustomization and components
+        file:
+          path: '{{ kyverno_prefix | quote }}'
+          state: directory
           owner: root
           group: root
-          mode: '0400'
-          checksum: sha256:660cba4aacd38271f12f420a0b13177753d5dc1c6a3694be43e08c11ad54096e
-        register: downloaded_kyverno_pubsign
+          mode: '0700'
+        register: dir_kyverno_kustomize
+      - name: Checking how to verify Kyverno CR images
+        ansible.builtin.stat:
+          path: /usr/local/bin/cosign
+        register: cosign_exist
       - name: Verifying Kyverno CR images
-        ansible.builtin.command: /usr/local/bin/cosign verify --key=/root/cosign.pub ghcr.io/kyverno/kyverno:{{ kyverno_image_tag | quote }}
-        when: downloaded_kyverno_pubsign is succeeded
+        ansible.builtin.command: /usr/local/bin/cosign verify ghcr.io/kyverno/kyverno:{{ kyverno_image_tag | quote }}
+        ignore_errors: true
         register: kyverno_image_tag_cosign
+        environment:
+          COSIGN_EXPERIMENTAL: '1'
+        when: cosign_exist.stat.exists
       - name: Downloading Kyverno cli
         get_url:
           url: https://github.com/kyverno/kyverno/releases/download/{{ kyverno_image_tag |
             quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
-          dest: /root/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          dest: '{{ kyverno_prefix | quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz'
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:634a8f1d90107a662a8ecbe47c9a724efc2a390291addcdbeecf3f378104284a
+          checksum: sha256:89e06c4a0c2a0378b03abc0596e51ad61b59ba81a645be866f5120531816813d
         register: downloaded_kyverno_cli
       - name: Installing Kyverno cli
         unarchive:
-          src: /root/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz
+          src: '{{ kyverno_prefix | quote }}/kyverno-cli_{{ kyverno_image_tag | quote }}_linux_x86_64.tar.gz'
           dest: /usr/local/bin
           owner: root
           group: root
@@ -349,17 +412,18 @@
         when: downloaded_kyverno_cli is succeeded
       - name: Downloading Kyverno installation YAML
         get_url:
-          url: https://raw.githubusercontent.com/kyverno/kyverno/release-1.5/definitions/release/install.yaml
-          dest: /root/install.yaml
+          url: https://raw.githubusercontent.com/kyverno/kyverno/{{ kyverno_branch |
+            quote }}/config/install.yaml
+          dest: '{{ kyverno_prefix | quote }}/install.yaml'
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:92f29e2a501f0a105911b3c7d8f0be71dcc7b415d2f8a6cedf83fec8573fd88d
+          checksum: sha256:b66ecd585fac8854b2f41471fd04270f47eaa070f3368aded277023ef6c87731
         register: download_kyverno_installation_yaml
       - name: Copying Kyverno Kustomization
         copy:
           content: "{{ install_kyverno_kustomize }}"
-          dest: /root/kustomization.yaml
+          dest: '{{ kyverno_prefix | quote }}/kustomization.yaml'
           owner: root
           group: root
           mode: '0400'
@@ -368,15 +432,15 @@
       - name: Copying Kyverno Transformation
         copy:
           content: "{{ kyverno_transformation }}"
-          dest: /root/annotations-kyverno.yaml
+          dest: '{{ kyverno_prefix | quote }}/annotations-kyverno.yaml'
           owner: root
           group: root
           mode: '0400'
           remote_src: true
         register: kyverno_transform
       - name: Deploying Kyverno via YAMLs
-        ansible.builtin.command: /usr/bin/kubectl apply -k /root/
-        when: apiserver_avail is succeeded and kyverno_image_tag_cosign.rc == 0 and
+        ansible.builtin.command: /usr/bin/kubectl apply -k {{ kyverno_prefix | quote }}
+        when: installed_consul_k8s.rc == 0 and kyverno_image_tag_cosign.rc == 0 and
           download_kyverno_installation_yaml is succeeded and kyverno_kustomize is succeeded and
           kyverno_transform is succeeded
   - name: Provisioning Alpine 3.15 K8s (workers, post-first reboot)
@@ -397,9 +461,20 @@
         wait_for:
           path: /vagrant/text
           search_regex: 'sha256'
-        register: got_token_and_hash
+        register: got_token_and_hash_pre
         async: 600
-        poll: 20
+        poll: 0
+      - name: Checking node registration token +hash
+        async_status:
+          jid: "{{ got_token_and_hash_pre.ansible_job_id }}"
+        register: got_token_and_hash
+        until: got_token_and_hash.finished
+        retries: 6
+        delay: 100
+      - name: Cleaning async job status
+        async_status:
+          mode: cleanup
+          jid: "{{ got_token_and_hash_pre.ansible_job_id }}"
       - name: Setting node registration token
         ansible.builtin.command: awk '/^kubeadm/ {print $5}' /vagrant/text
         when: got_token_and_hash is succeeded
@@ -411,7 +486,8 @@
       - name: Joining node to cluster
         ansible.builtin.command: >
           /usr/bin/kubeadm join --token {{ token.stdout | quote }} {{ apiserver | quote }}:{{ k8s_serviceport | quote }}
-          --discovery-token-ca-cert-hash sha256:{{ ca_cert_hash.stdout | quote }} --cri-socket=/run/containerd/containerd.sock
+          --discovery-token-ca-cert-hash sha256:{{ ca_cert_hash.stdout | quote }}
+          --cri-socket=/run/containerd/containerd.sock
         when: got_token_and_hash is succeeded
       - name: Replacing KUBELET_EXTRA_ARGS
         lineinfile:

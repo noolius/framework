@@ -3,17 +3,17 @@
     hosts: control_planes
     become: true
     vars:
-      linkerd_version: edge-22.1.5
-      cilium_cli_version: v0.10.1
+      consul_k8s_version: 0.41.1
+      cilium_cli_version: v0.10.4
       hubble_version: v0.9.0
-      cosign_version: v1.5.0
-      helm_version: v3.8.0
-      kapp_version: v0.45.0
-      crank_version: v1.6.2
-      thanos_cli_version: 0.24.0
-      kustomize_version: v4.4.1
-      cf_version: 8.1.0
-      certmanager_version: v1.6.1
+      cosign_version: v1.6.0
+      helm_version: v3.8.1
+      kapp_version: v0.46.0
+      crank_version: v1.6.4
+      thanos_cli_version: 0.25.0
+      kustomize_version: v4.5.2
+      cf_version: 8.2.0
+      certmanager_version: v1.7.1
     tasks:
       - name: Downloading cosign
         get_url:
@@ -22,13 +22,13 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:5bf1aa3ff4bd129c478e16e0b83febf3cc1b91b9daed60be31e8c6614a99b021
+          checksum: sha256:b62ac8c1ab1cdb072d442d2f3db7d7ffe977566a6170cd03dd48e4583dad3203
       - name: Downloading Helm cli
         get_url:
           url: https://get.helm.sh/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
           dest: /root/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:8408c91e846c5b9ba15eb6b1a5a79fc22dd4d33ac6ea63388e5698d1b2320c8b
+          checksum: sha256:d643f48fe28eeb47ff68a1a7a26fc5142f348d02c8bc38d699674016716f61cd
       - name: Extracting Helm cli
         unarchive:
           src: /root/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
@@ -52,15 +52,29 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:9d2c0441729bebe49e5fb9a1a7b7088f0bee4092ba23e267339a9478948c5731
-      - name: Downloading and installing Linkerd2 cli
+          checksum: sha256:130f648cd921761b61bb03d7a0f535d1eea26e0b5fc60e2839af73f4ea98e22f
+      - name: Downloading consul-k8s cli
         get_url:
-          url: https://github.com/linkerd/linkerd2/releases/download/{{ linkerd_version | quote }}/linkerd2-cli-{{ linkerd_version | quote }}-linux-amd64
-          dest: /usr/local/bin/linkerd
+          url: https://releases.hashicorp.com/consul-k8s/{{ consul_k8s_version |
+            quote }}/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
+          dest: /root/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
+          owner: root
+          group: root
+          mode: '0400'
+          checksum: sha256:0c59cb11bed051e57dbeabac557bc40714bb74a907786f19fb15f88027d2c6ef
+      - name: Adding unzip package
+        community.general.apk:
+          name:
+            - unzip
+          state: latest
+      - name: Installing consul-k8s cli
+        unarchive:
+          src: /root/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
+          dest: /usr/local/bin
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:9b84800547bb7ac31b4d6d285f5fba95feb7095d5ae8a87284e390016a6f2f25
+          remote_src: true
       - name: Downloading and installing Crossplane cli
         get_url:
           url: https://releases.crossplane.io/stable/{{ crank_version | quote }}/bin/linux_amd64/crank
@@ -68,13 +82,13 @@
           owner: root
           group: root
           mode: '0555'
-          checksum: sha256:49e188b334ffef0efb378a8933583b17d306763fe8b9f4847e1433fb331d9803
+          checksum: sha256:0130e077172d66f5470de9e507ecd2b0c2dc2d46aea0ad8e1996852752a1808b
       - name: Downloading Cilium cli
         get_url:
           url: https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version | quote }}/cilium-linux-amd64.tar.gz
           dest: /root/cilium-linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:b907aebccc7c57786506a3ffa83108c548ecd45095ec31298acda28d75e40472
+          checksum: sha256:8681d274933f2d46ea64773b4f45a248d6c25d7acaf9e4e15fd504e640dd7658
       - name: Installing Cilium cli
         unarchive:
           src: /root/cilium-linux-amd64.tar.gz
@@ -103,7 +117,7 @@
             quote }}/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           dest: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           mode: '0400'
-          checksum: sha256:0f27e3758434a82247ab31eaf19dc84d5d36b891b347c702df01c76d3c73ada5
+          checksum: sha256:9f497c8c40831fc33630de0822499e96bb688b900667efc81c71860081959e2e
       - name: Extracting Thanos cli
         unarchive:
           src: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
@@ -125,7 +139,7 @@
           url: https://packages.cloudfoundry.org/stable?release=linux64-binary&version={{ cf_version | quote }}&source=github-rel
           dest: /root/cf8-cli_{{ cf_version | quote }}_linux_x86-64.tgz
           mode: '0400'
-          checksum: sha256:2bc4c178b47bed712422d94399a6cc9acc92d21c6a640392ec7181b0c1bce5d0
+          checksum: sha256:dadbb24dba7ef41f935b72f70d66b9b9c78df1781f67682ad0c116be92644693
       - name: Installing cf v8 cli
         unarchive:
           src: /root/cf8-cli_{{ cf_version | quote }}_linux_x86-64.tgz
@@ -147,12 +161,12 @@
         when: installing_cf_v8_cli is succeeded
       - name: Downloading kubectl cert-manager
         get_url:
-          url: https://github.com/jetstack/cert-manager/releases/download/{{ certmanager_version | quote }}/kubectl-cert_manager-linux-amd64.tar.gz
+          url: https://github.com/cert-manager/cert-manager/releases/download/{{ certmanager_version | quote }}/kubectl-cert_manager-linux-amd64.tar.gz
           dest: /root/kubectl-cert_manager-linux-amd64.tar.gz
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:cf9cb0b1020cc437d431805be4baf2bc9de6de0b06e7821b0dd7d5d598cc1f36
+          checksum: sha256:f5a2741db8f5f5db4ab7ad041561b4c541a1ae35923053deadb0afb0e8c16cef
       - name: Installing kubectl cert-manager
         unarchive:
           src: /root/kubectl-cert_manager-linux-amd64.tar.gz
@@ -171,7 +185,7 @@
           owner: root
           group: root
           mode: '0400'
-          checksum: sha256:2d5927efec40ba32a121c49f6df9955b8b8a296ef1dec4515a46fc84df158798
+          checksum: sha256:c4215332da8da16ddeb88e218d8dceb76c85b366a5c58d012bc5ece904bf2fd0
       - name: Installing Kustomize
         unarchive:
           src: /root/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
@@ -332,8 +346,8 @@
             - etcd-ctl
             - kubectl
             - patch
-            - yq
-            - librdkafka
+            - arping
+            - git
             - yajl
             - coreutils
           state: latest
