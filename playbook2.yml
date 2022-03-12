@@ -138,7 +138,7 @@
       kustomization_yaml_metallb: |
         namespace: metallb-system
         resources:
-         - github.com/metallb/metallb//manifests?ref=v0.11.0
+         - github.com/metallb/metallb//manifests?ref=v0.12.1
          - configmap.yml
       kyverno_prefix: /root/kyverno
       metallb_prefix: /root/metallb
