@@ -15,6 +15,13 @@
       cf_version: 8.2.0
       certmanager_version: v1.7.1
     tasks:
+      - name: Adding packages from release repo
+        community.general.apk:
+          name:
+            - unzip
+            - kubectx
+            - kubens
+          state: latest
       - name: Downloading cosign
         get_url:
           url: https://github.com/sigstore/cosign/releases/download/{{ cosign_version | quote }}/cosign-linux-amd64
@@ -62,11 +69,6 @@
           group: root
           mode: '0400'
           checksum: sha256:0c59cb11bed051e57dbeabac557bc40714bb74a907786f19fb15f88027d2c6ef
-      - name: Adding unzip package
-        community.general.apk:
-          name:
-            - unzip
-          state: latest
       - name: Installing consul-k8s cli
         unarchive:
           src: /root/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
@@ -275,6 +277,7 @@
             - kubelet
             - kubelet-openrc
             - kubeadm
+            - linux-edge4virt-dev
             - cri-tools
             - doas
           state: latest
@@ -351,20 +354,6 @@
             - yajl
             - coreutils
           state: latest
-      - name: Checking whether to copy kcat
-        ansible.builtin.stat:
-          path: /vagrant/kcat
-        register: test_kcat
-      - name: Copying kcat
-        copy:
-          src: /vagrant/kcat
-          dest: /usr/local/bin/kcat
-          owner: root
-          group: root
-          mode: '0555'
-          remote_src: true
-          checksum: 7640e8c2b3d681edc04f8ad6384e822d877c89ed
-        when: test_kcat.stat.exists
       - name: Checking whether to copy stern
         ansible.builtin.stat:
           path: /vagrant/stern
@@ -379,31 +368,3 @@
           remote_src: true
           checksum: a776b5c4d8fa9d253e1f911d86eb1ca78934ff16
         when: test_stern.stat.exists
-      - name: Checking whether to copy kubectx
-        ansible.builtin.stat:
-          path: /vagrant/kubectx
-        register: test_kubectx
-      - name: Copying kubectx
-        copy:
-          src: /vagrant/kubectx
-          dest: /usr/local/bin/kubectx
-          owner: root
-          group: root
-          mode: '0555'
-          remote_src: true
-          checksum: 943c0d47b5bd45fe0f8ea6b43dada537f87acbd6
-        when: test_kubectx.stat.exists
-      - name: Checking whether to copy kubens
-        ansible.builtin.stat:
-          path: /vagrant/kubens
-        register: test_kubens
-      - name: Copying kubens
-        copy:
-          src: /vagrant/kubens
-          dest: /usr/local/bin/kubens
-          owner: root
-          group: root
-          mode: '0555'
-          remote_src: true
-          checksum: 8244d59345c9f78572db4a86b628a9cab13ebc92
-        when: test_kubens.stat.exists
