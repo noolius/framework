@@ -257,12 +257,20 @@
         community.general.apk:
           update_cache: true
           upgrade: true
+        register: upgrading_pre
+        async: 300
+        poll: 0
+      - name: Checking status of distro packages upgrade
+        async_status:
+          jid: "{{ upgrading_pre.ansible_job_id }}"
         register: upgrading
-        failed_when: "'timed out' in upgrading.stderr"
-      - name: Re-attempting packages upgrade
-        community.general.apk:
-          upgrade: true
-        when: upgrading is not succeeded
+        until: upgrading.finished
+        retries: 2
+        delay: 70
+      - name: Cleaning async job status
+        async_status:
+          mode: cleanup
+          jid: "{{ upgrading_pre.ansible_job_id }}"
       - name: Adding cluster packages
         community.general.apk:
           name:
