@@ -20,7 +20,6 @@
           name:
             - unzip
             - kubectx
-            - kubens
           state: latest
       - name: Downloading cosign
         get_url:
