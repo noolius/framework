@@ -1,5 +1,5 @@
 ---
-  - name: Provisioning Alpine 3.15 K8s (all, post-first reboot)
+  - name: Provisioning Alpine edge K8s (all, post-first reboot)
     hosts: "*"
     become: true
     tasks:
@@ -12,7 +12,7 @@
           state: absent
           regexp: '^127\.0\.1\.1'
           path: /etc/hosts
-  - name: Provisioning Alpine 3.15 K8s (control-planes, post-first reboot)
+  - name: Provisioning Alpine edge K8s (control-planes, post-first reboot)
     hosts: control_planes
     become: true
     vars:
@@ -443,7 +443,7 @@
         when: installed_consul_k8s.rc == 0 and kyverno_image_tag_cosign.rc == 0 and
           download_kyverno_installation_yaml is succeeded and kyverno_kustomize is succeeded and
           kyverno_transform is succeeded
-  - name: Provisioning Alpine 3.15 K8s (workers, post-first reboot)
+  - name: Provisioning Alpine edge K8s (workers, post-first reboot)
     hosts: workers
     become: true
     vars:

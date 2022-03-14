@@ -25,7 +25,10 @@ Vagrant.configure("2") do |config|
 
   # Provisioning
   config.vm.provision "shell", inline: <<-SHELL
+    sed -i -e 's/v3\.15/edge/g' /etc/apk/repositories
+    echo "https://sjc.edge.kernel.org/alpine/edge/testing" | tee -a /etc/apk/repositories
     apk update
+    apk upgrade
     apk add python2 tar gzip bzip2
   SHELL
   config.vm.provision "ansible" do |ansible|

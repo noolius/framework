@@ -1,5 +1,5 @@
 ---
-  - name: Provisioning Alpine 3.15 K8s (control-planes)
+  - name: Provisioning Alpine edge K8s (control-planes)
     hosts: control_planes
     become: true
     vars:
@@ -197,7 +197,7 @@
           remote_src: true
           extra_opts:
           - kustomize
-  - name: Provisioning Alpine 3.15 K8s (all)
+  - name: Provisioning Alpine edge K8s (all)
     hosts: "*"
     become: true
     vars:
@@ -213,10 +213,6 @@
         net.bridge.bridge-nf-call-iptables = 1
         net.bridge.bridge-nf-call-ip6tables = 1
         net.netfilter.nf_conntrack_max = 1000000
-      repo_contents: |
-        https://dl-3.alpinelinux.org/alpine/edge/main
-        https://dl-3.alpinelinux.org/alpine/edge/community
-        https://dl-3.alpinelinux.org/alpine/edge/testing
       mount_rshared_openrc: |
         #!/sbin/openrc-run
         name="mount_rshared"
@@ -244,32 +240,6 @@
           content: "{{ sysctl_tunables }}"
           dest: /etc/sysctl.d/K8s_v2.conf
           mode: '0440'
-      - name: Replacing /e/apk/repositories with edge/*
-        copy:
-          content: "{{ repo_contents }}"
-          dest: /etc/apk/repositories
-          owner: root
-          group: root
-          mode: '0444'
-          backup: true
-      - name: Upgrading distro packages to their latest versions
-        community.general.apk:
-          update_cache: true
-          upgrade: true
-        register: upgrading_pre
-        async: 300
-        poll: 0
-      - name: Checking status of distro packages upgrade
-        async_status:
-          jid: "{{ upgrading_pre.ansible_job_id }}"
-        register: upgrading
-        until: upgrading.finished
-        retries: 2
-        delay: 70
-      - name: Cleaning async job status
-        async_status:
-          mode: cleanup
-          jid: "{{ upgrading_pre.ansible_job_id }}"
       - name: Adding cluster packages
         community.general.apk:
           name:
@@ -344,7 +314,7 @@
         service:
           name: mount_rshared
           enabled: true
-  - name: Provisioning Alpine 3.15 K8s (control-planes...more)
+  - name: Provisioning Alpine edge K8s (control-planes...more)
     hosts: control_planes
     become: true
     tasks:
