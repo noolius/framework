@@ -254,7 +254,6 @@
             - kubelet
             - kubelet-openrc
             - kubeadm
-            - linux-edge4virt-dev
             - cri-tools
             - doas
           state: latest
