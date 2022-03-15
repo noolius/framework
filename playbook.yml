@@ -22,7 +22,7 @@
             - kubectx
           state: latest
       - name: Downloading cosign
-        get_url:
+        ansible.builtin.get_url:
           url: https://github.com/sigstore/cosign/releases/download/{{ cosign_version | quote }}/cosign-linux-amd64
           dest: /usr/local/bin/cosign
           owner: root
@@ -30,13 +30,13 @@
           mode: '0555'
           checksum: sha256:b62ac8c1ab1cdb072d442d2f3db7d7ffe977566a6170cd03dd48e4583dad3203
       - name: Downloading Helm cli
-        get_url:
+        ansible.builtin.get_url:
           url: https://get.helm.sh/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
           dest: /root/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
           mode: '0400'
           checksum: sha256:d643f48fe28eeb47ff68a1a7a26fc5142f348d02c8bc38d699674016716f61cd
       - name: Extracting Helm cli
-        unarchive:
+        ansible.builtin.unarchive:
           src: /root/helm-{{ helm_version | quote }}-linux-amd64.tar.gz
           dest: /root
           mode: '0400'
@@ -44,7 +44,7 @@
           extra_opts:
           - linux-amd64/helm
       - name: Installing Helm cli
-        copy:
+        ansible.builtin.copy:
           src: /root/linux-amd64/helm
           dest: /usr/local/bin/helm
           owner: root
@@ -52,7 +52,7 @@
           mode: '0555'
           remote_src: true
       - name: Downloading and installing kapp cli
-        get_url:
+        ansible.builtin.get_url:
           url: https://github.com/vmware-tanzu/carvel-kapp/releases/download/{{ kapp_version | quote }}/kapp-linux-amd64
           dest: /usr/local/bin/kapp
           owner: root
@@ -60,7 +60,7 @@
           mode: '0555'
           checksum: sha256:130f648cd921761b61bb03d7a0f535d1eea26e0b5fc60e2839af73f4ea98e22f
       - name: Downloading consul-k8s cli
-        get_url:
+        ansible.builtin.get_url:
           url: https://releases.hashicorp.com/consul-k8s/{{ consul_k8s_version |
             quote }}/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
           dest: /root/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
@@ -69,7 +69,7 @@
           mode: '0400'
           checksum: sha256:0c59cb11bed051e57dbeabac557bc40714bb74a907786f19fb15f88027d2c6ef
       - name: Installing consul-k8s cli
-        unarchive:
+        ansible.builtin.unarchive:
           src: /root/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
           dest: /usr/local/bin
           owner: root
@@ -77,7 +77,7 @@
           mode: '0555'
           remote_src: true
       - name: Downloading and installing Crossplane cli
-        get_url:
+        ansible.builtin.get_url:
           url: https://releases.crossplane.io/stable/{{ crank_version | quote }}/bin/linux_amd64/crank
           dest: /usr/local/bin/kubectl-crossplane
           owner: root
@@ -85,13 +85,13 @@
           mode: '0555'
           checksum: sha256:0130e077172d66f5470de9e507ecd2b0c2dc2d46aea0ad8e1996852752a1808b
       - name: Downloading Cilium cli
-        get_url:
+        ansible.builtin.get_url:
           url: https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version | quote }}/cilium-linux-amd64.tar.gz
           dest: /root/cilium-linux-amd64.tar.gz
           mode: '0400'
           checksum: sha256:8681d274933f2d46ea64773b4f45a248d6c25d7acaf9e4e15fd504e640dd7658
       - name: Installing Cilium cli
-        unarchive:
+        ansible.builtin.unarchive:
           src: /root/cilium-linux-amd64.tar.gz
           dest: /usr/local/bin
           owner: root
@@ -99,13 +99,13 @@
           mode: '0555'
           remote_src: true
       - name: Downloading Hubble cli
-        get_url:
+        ansible.builtin.get_url:
           url: https://github.com/cilium/hubble/releases/download/{{ hubble_version | quote }}/hubble-linux-amd64.tar.gz
           dest: /root/hubble-linux-amd64.tar.gz
           mode: '0400'
           checksum: sha256:63d62f6ea4b2daedaa08f95fbb95e457b4ee5d00167f4a84af0ba7ca3225924d
       - name: Installing Hubble cli
-        unarchive:
+        ansible.builtin.unarchive:
           src: /root/hubble-linux-amd64.tar.gz
           dest: /usr/local/bin
           owner: root
@@ -113,14 +113,14 @@
           mode: '0555'
           remote_src: true
       - name: Downloading Thanos cli
-        get_url:
+        ansible.builtin.get_url:
           url: https://github.com/thanos-io/thanos/releases/download/v{{ thanos_cli_version |
             quote }}/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           dest: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           mode: '0400'
           checksum: sha256:9f497c8c40831fc33630de0822499e96bb688b900667efc81c71860081959e2e
       - name: Extracting Thanos cli
-        unarchive:
+        ansible.builtin.unarchive:
           src: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
           dest: /root
           mode: '0400'
@@ -128,7 +128,7 @@
           extra_opts:
           - thanos-{{ thanos_cli_version | quote }}.linux-amd64/thanos
       - name: Installing Thanos cli
-        copy:
+        ansible.builtin.copy:
           src: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64/thanos
           dest: /usr/local/bin/thanos
           owner: root
@@ -136,13 +136,13 @@
           mode: '0555'
           remote_src: true
       - name: Downloading cf v8 cli
-        get_url:
+        ansible.builtin.get_url:
           url: https://packages.cloudfoundry.org/stable?release=linux64-binary&version={{ cf_version | quote }}&source=github-rel
           dest: /root/cf8-cli_{{ cf_version | quote }}_linux_x86-64.tgz
           mode: '0400'
           checksum: sha256:dadbb24dba7ef41f935b72f70d66b9b9c78df1781f67682ad0c116be92644693
       - name: Installing cf v8 cli
-        unarchive:
+        ansible.builtin.unarchive:
           src: /root/cf8-cli_{{ cf_version | quote }}_linux_x86-64.tgz
           dest: /usr/local/bin
           owner: root
@@ -153,7 +153,7 @@
           - cf8
         register: installing_cf_v8_cli
       - name: Symlinking cf v8 cli
-        file:
+        ansible.builtin.file:
           src: /usr/local/bin/cf8
           dest: /usr/local/bin/cf
           owner: root
@@ -161,7 +161,7 @@
           state: link
         when: installing_cf_v8_cli is succeeded
       - name: Downloading kubectl cert-manager
-        get_url:
+        ansible.builtin.get_url:
           url: https://github.com/cert-manager/cert-manager/releases/download/{{ certmanager_version | quote }}/kubectl-cert_manager-linux-amd64.tar.gz
           dest: /root/kubectl-cert_manager-linux-amd64.tar.gz
           owner: root
@@ -169,7 +169,7 @@
           mode: '0400'
           checksum: sha256:f5a2741db8f5f5db4ab7ad041561b4c541a1ae35923053deadb0afb0e8c16cef
       - name: Installing kubectl cert-manager
-        unarchive:
+        ansible.builtin.unarchive:
           src: /root/kubectl-cert_manager-linux-amd64.tar.gz
           dest: /usr/local/bin
           owner: root
@@ -179,7 +179,7 @@
           extra_opts:
           - kubectl-cert_manager
       - name: Downloading Kustomize
-        get_url:
+        ansible.builtin.get_url:
           url: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F{{ kustomize_version |
             quote }}/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
           dest: /root/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
@@ -188,7 +188,7 @@
           mode: '0400'
           checksum: sha256:c4215332da8da16ddeb88e218d8dceb76c85b366a5c58d012bc5ece904bf2fd0
       - name: Installing Kustomize
-        unarchive:
+        ansible.builtin.unarchive:
           src: /root/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
           dest: /usr/local/bin
           owner: root
@@ -223,7 +223,7 @@
         }
     tasks:
       - name: Configuring /e/doas.conf
-        copy:
+        ansible.builtin.copy:
           content: "{{ doas_d_conf }}"
           dest: /etc/doas.conf
           owner: root
@@ -231,12 +231,12 @@
           mode: '0600'
           backup: true
       - name: Configuring additional kernel modules to load
-        copy:
+        ansible.builtin.copy:
           content: "{{ more_modules }}"
           dest: /etc/modules-load.d/K8s.conf
           mode: '0440'
       - name: Configuring sysctl tunables
-        copy:
+        ansible.builtin.copy:
           content: "{{ sysctl_tunables }}"
           dest: /etc/sysctl.d/K8s_v2.conf
           mode: '0440'
@@ -266,7 +266,7 @@
         register: fingerprint
         when: not test_contents.stat.exists
       - name: Creating /e/salt/minion.d
-        file:
+        ansible.builtin.file:
           path: /etc/salt/minion.d
           state: directory
           owner: root
@@ -274,7 +274,7 @@
           mode: '0755'
         when: not test_contents.stat.exists
       - name: Seeding salt-master IPv4
-        copy:
+        ansible.builtin.copy:
           content: "master: '{{ ansible_default_ipv4.gateway }}'"
           dest: /etc/salt/minion.d/master.conf
           owner: root
@@ -282,7 +282,7 @@
           mode: '0444'
         when: not test_contents.stat.exists
       - name: Seeding salt-master public key fingerprint
-        copy:
+        ansible.builtin.copy:
           content: "master_finger: '{{ fingerprint.stdout }}'"
           dest: /etc/salt/minion.d/master_finger.conf
           owner: root
@@ -290,27 +290,27 @@
           mode: '0444'
         when: not test_contents.stat.exists
       - name: Creating OpenRC script to mount --make-rshared /
-        copy:
+        ansible.builtin.copy:
           content: "{{ mount_rshared_openrc }}"
           dest: /etc/init.d/mount_rshared
           owner: root
           group: root
           mode: '0550'
       - name: Enabling salt-minion service
-        service:
+        ansible.builtin.service:
           name: salt-minion
           enabled: true
         when: not test_contents.stat.exists
       - name: Enabling kubelet service
-        service:
+        ansible.builtin.service:
           name: kubelet
           enabled: true
       - name: Enabling containerd service
-        service:
+        ansible.builtin.service:
           name: containerd
           enabled: true
       - name: Enabling service to mount --make-rshared /
-        service:
+        ansible.builtin.service:
           name: mount_rshared
           enabled: true
   - name: Provisioning Alpine edge K8s (control-planes...more)
@@ -335,7 +335,7 @@
           path: /vagrant/stern
         register: test_stern
       - name: Copying stern
-        copy:
+        ansible.builtin.copy:
           src: /vagrant/stern
           dest: /usr/local/bin/stern
           owner: root
