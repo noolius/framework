@@ -21,6 +21,7 @@
       apiserver: 192.168.133.10
       metallb_alloc_cidr: 192.168.133.99-192.168.133.240
       metallb_version: 0.12.1
+      consul_version: 1.11.4
       k8s_serviceport: 6443
       storageclass_manifest: |
         apiVersion: storage.k8s.io/v1
@@ -360,6 +361,7 @@
           copied_metallb_cm is succeeded
       - name: Installing Consul K8s
         ansible.builtin.command: /usr/local/bin/consul-k8s install -auto-approve=true -preset=secure
+          -set-string global.image="hashicorp/consul:{{ consul_version | quote }}"
         register: installed_consul_k8s
         when: waited_cilium is succeeded and local_sc_pv is succeeded
       - name: Creating namespaces
