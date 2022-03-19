@@ -332,15 +332,15 @@
           state: latest
       - name: Checking whether to copy stern
         ansible.builtin.stat:
-          path: /vagrant/stern
+          path: /vagrant/stern-v1.21.0
         register: test_stern
       - name: Copying stern
         ansible.builtin.copy:
-          src: /vagrant/stern
+          src: /vagrant/stern-v1.21.0
           dest: /usr/local/bin/stern
           owner: root
           group: root
           mode: '0555'
           remote_src: true
-          checksum: a776b5c4d8fa9d253e1f911d86eb1ca78934ff16
+          checksum: cef590cae2a8815dca4458be960b8b7c03c6d28f
         when: test_stern.stat.exists
