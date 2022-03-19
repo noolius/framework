@@ -6,7 +6,7 @@ case "${1}" in
       # shellcheck disable=SC2154
       x=$(. vagrant_loc && echo "$v") && \
       "$x" status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} "$x" halt {};
+      parallel "$x halt {}";
     fi
     ;;
   provision)
@@ -22,28 +22,28 @@ case "${1}" in
 	       sudo -K;
       fi && \
       "$x" status | awk '/not created/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} "$x" up --provision {};
+      parallel "$x up --provision {}";
     fi
     ;;
   reload)
     if test -f vagrant_loc -a -r vagrant_loc; then
       x=$(. vagrant_loc && echo "$v") && \
       "$x" status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} "$x" reload {};
+      parallel "$x reload {}";
     fi
     ;;
   run)
     if test -f vagrant_loc -a -r vagrant_loc; then
       x=$(. vagrant_loc && echo "$v") && \
       "$x" status | awk '/poweroff/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} "$x" up {};
+      parallel "$x up {}";
     fi
     ;;
   update)
     if test -f vagrant_loc -a -r vagrant_loc; then
       x=$(. vagrant_loc && echo "$v") && \
       "$x" status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
-      xargs -P4 -I {} "$x" ssh {} -- "doas apk update && doas apk upgrade";
+      parallel "echo {} ; $x ssh {} -- doas apk -U upgrade";
     fi
     ;;
   *)
