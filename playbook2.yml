@@ -170,7 +170,7 @@
         ansible.builtin.shell: >
           nohup /usr/bin/kubeadm init --apiserver-advertise-address={{ apiserver | quote }}
           --pod-network-cidr={{ pod_network_cidr | quote }}
-          --cri-socket=/run/containerd/containerd.sock </dev/null >/vagrant/text 2>&1 &
+          --cri-socket=unix:///run/containerd/containerd.sock </dev/null >/vagrant/text 2>&1 &
         args:
           executable: /bin/bash
           warn: false
@@ -186,7 +186,7 @@
         ansible.builtin.lineinfile:
           line: >
             KUBELET_KUBEADM_ARGS="--node-ip {{ ansible_eth1.ipv4.address | quote }} --container-runtime remote
-            --container-runtime-endpoint=/run/containerd/containerd.sock --cgroup-driver=cgroupfs
+            --container-runtime-endpoint=unix:///run/containerd/containerd.sock --cgroup-driver=cgroupfs
             --pod-infra-container-image=k8s.gcr.io/pause:3.5"
           regexp: '^KUBELET_KUBEADM_ARGS='
           path: /var/lib/kubelet/kubeadm-flags.env
@@ -491,13 +491,13 @@
         ansible.builtin.command: >
           /usr/bin/kubeadm join --token {{ token.stdout | quote }} {{ apiserver | quote }}:{{ k8s_serviceport | quote }}
           --discovery-token-ca-cert-hash sha256:{{ ca_cert_hash.stdout | quote }}
-          --cri-socket=/run/containerd/containerd.sock
+          --cri-socket=unix:///run/containerd/containerd.sock
         when: got_token_and_hash is succeeded
       - name: Replacing KUBELET_EXTRA_ARGS
         ansible.builtin.lineinfile:
           line: >
             KUBELET_KUBEADM_ARGS="--node-ip {{ ansible_eth1.ipv4.address | quote }} --container-runtime remote
-            --container-runtime-endpoint=/run/containerd/containerd.sock --cgroup-driver=cgroupfs
+            --container-runtime-endpoint=unix:///run/containerd/containerd.sock --cgroup-driver=cgroupfs
             --pod-infra-container-image=k8s.gcr.io/pause:3.5"
           regexp: '^KUBELET_KUBEADM_ARGS='
           path: /var/lib/kubelet/kubeadm-flags.env
