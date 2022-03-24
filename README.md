@@ -1,11 +1,11 @@
 # What's here?
 
-Bash scripts and Ansible playbooks to proof-of-concept a local Alpine Linux cluster with Cloud Foundry
+Bash scripts and Ansible playbooks to proof-of-concept local Alpine Linux Kubernetes nodes
 
 # Why not k0s/K3s/microK8s/RKE2...?
 
-- Local (no "free"-tier AWS/Azure/GCP/Oracle//IBM Cloud/requiring submitting credit card details)
-- Alpine Linux nodes
+- Local (no "free"-tier AWS/Azure/GCP/Oracle//IBM Cloud/requiring submitting payment details)
+- Alpine Linux host nodes
 - No Docker
 - Cilium (see Caveats)
 - Vagrant
@@ -36,24 +36,11 @@ v=/usr/bin/vagrant
 
 In ``Vagrantfile``, adjust the host-only ``private_network`` /24 CIDR as necessary. As of VirtualBox 6.1.30, also [add this CIDR to /etc/vbox/networks.conf](https://www.virtualbox.org/manual/ch06.html#network_hostonly).
 
-If you change it, also note (or modify) ``apiserver`` (twice) in ``playbook2.yml``.
+If you change it, also note (or modify) ``apiserver`` in ``playbook2.yml``.
 
 ## Moar fast!
 
-To provision the nodes as quickly as possible, e.g.,
-
-```
-./to_provision.sh  106.84s user 30.59s system 54% cpu 4:13.32 total
-```
-
-versus
-
-
-```
-.../vagrant up  90.74s user 29.74s system 19% cpu 10:32.48 total
-```
-
-(performed some while ago with three VBox nodes on a 64GiB Ryzen 7 4800H, USB "SuperSpeed Plus" 3.2 Gen 2x1 external SSD, 1Gb WAN)
+To provision the nodes: use either standard Terraform commands, or invoke ``to_parll.sh``.
 
 ## Caveats
 
@@ -64,6 +51,8 @@ If using Mitogen v0.3.0 on the host with Ansible (see [this note](https://mitoge
 Cilium is configured to encipher inter-node traffic using WireGuard(tm), so expect several of the ``cilium connectivity test``s to fail.
 
 ## Known issues
+
+Using host kernels newer than 5.16 will likely exhibit Cilium deployment failure due to changes in eBPF.
 
 ~~Deploying the Linkerd2 edge-21.9.3 [viz extension](https://linkerd.io/2/getting-started/) in a v1.22.2 cluster errors out; this is a [policy CRD v1beta1 interaction](https://github.com/linkerd/linkerd2/issues/6827).~~ (fixed in edge-21.9.4)
 
