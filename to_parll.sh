@@ -22,28 +22,28 @@ case "${1}" in
 	       sudo -K;
       fi && \
       "$x" status | awk '/not created/{gsub(/ $/, "", $0);print $1}' | \
-      parallel "$x up --provision {}";
+      parallel --delay 15 "$x up --provision {}";
     fi
     ;;
   reload)
     if test -f vagrant_loc -a -r vagrant_loc; then
       x=$(. vagrant_loc && echo "$v") && \
       "$x" status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
-      parallel "$x reload {}";
+      parallel --delay 5 "$x reload {}";
     fi
     ;;
   run)
     if test -f vagrant_loc -a -r vagrant_loc; then
       x=$(. vagrant_loc && echo "$v") && \
       "$x" status | awk '/poweroff/{gsub(/ $/, "", $0);print $1}' | \
-      parallel "$x up {}";
+      parallel --delay 5 "$x up {}";
     fi
     ;;
   update)
     if test -f vagrant_loc -a -r vagrant_loc; then
       x=$(. vagrant_loc && echo "$v") && \
       "$x" status | awk '/running/{gsub(/ $/, "", $0);print $1}' | \
-      parallel "echo {} ; $x ssh {} -- doas apk -U upgrade";
+      parallel --sshdelay 5 "echo {} ; $x ssh {} -- doas apk -U upgrade";
     fi
     ;;
   *)
