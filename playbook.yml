@@ -2,18 +2,6 @@
   - name: Provisioning Alpine edge K8s (control-planes)
     hosts: control_planes
     become: true
-    vars:
-      consul_k8s_version: 0.41.1
-      cilium_cli_version: v0.10.4
-      hubble_version: v0.9.0
-      cosign_version: v1.6.0
-      helm_version: v3.8.1
-      kapp_version: v0.46.0
-      crank_version: v1.6.4
-      thanos_cli_version: 0.25.1
-      kustomize_version: v4.5.2
-      cf_version: 8.2.0
-      certmanager_version: v1.7.1
     tasks:
       - name: Adding packages from release repo
         community.general.apk:
@@ -200,27 +188,6 @@
   - name: Provisioning Alpine edge K8s (all)
     hosts: "*"
     become: true
-    vars:
-      doas_d_conf: |
-        permit nopass keepenv setenv { PATH } root as root
-        permit nopass keepenv setenv { PATH } vagrant as root
-      more_modules: |
-        overlay
-        br_netfilter
-        wireguard
-      sysctl_tunables: |
-        net.ipv4.ip_forward = 1
-        net.bridge.bridge-nf-call-iptables = 1
-        net.bridge.bridge-nf-call-ip6tables = 1
-        net.netfilter.nf_conntrack_max = 1000000
-      mount_rshared_openrc: |
-        #!/sbin/openrc-run
-        name="mount_rshared"
-        command="/bin/mount"
-        command_args="--make-rshared /"
-        depend() {
-          before kubelet
-        }
     tasks:
       - name: Configuring /e/doas.conf
         ansible.builtin.copy:
