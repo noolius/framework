@@ -1,6 +1,9 @@
 ---
   - name: Provisioning Alpine edge K8s (all, post-first reboot)
     hosts: "*"
+    roles:
+      - common
+      - control_planes
     become: true
     tasks:
       - name: Adding node IP to /e/hosts
@@ -14,6 +17,9 @@
           path: /etc/hosts
   - name: Provisioning Alpine edge K8s (control-planes, post-first reboot)
     hosts: control_planes
+    roles:
+      - common
+      - control_planes
     become: true
     tasks:
       - name: Creating KUBECONFIG dir for root user
@@ -317,6 +323,8 @@
           kyverno_transform is succeeded
   - name: Provisioning Alpine edge K8s (workers, post-first reboot)
     hosts: workers
+    roles:
+      - common
     become: true
     tasks:
       - name: Setting /srv 01777 for use by PVs

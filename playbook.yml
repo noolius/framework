@@ -1,6 +1,9 @@
 ---
   - name: Provisioning Alpine edge K8s (control-planes)
     hosts: control_planes
+    roles:
+      - common
+      - control_planes
     become: true
     tasks:
       - name: Adding packages from release repo
@@ -187,6 +190,9 @@
           - kustomize
   - name: Provisioning Alpine edge K8s (all)
     hosts: "*"
+    roles:
+      - common
+      - control_planes
     become: true
     tasks:
       - name: Configuring /e/doas.conf
@@ -282,6 +288,9 @@
           enabled: true
   - name: Provisioning Alpine edge K8s (control-planes...more)
     hosts: control_planes
+    roles:
+      - common
+      - control_planes
     become: true
     tasks:
       - name: Adding cluster packages specific to control-planes
