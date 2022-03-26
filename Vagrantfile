@@ -25,13 +25,11 @@ Vagrant.configure("2") do |config|
 
   # Provisioning
   config.vm.provision "shell", inline: <<-SHELL
-    apk update
-    apk add python2 tar gzip bzip2
+    apk -U add python2 tar gzip bzip2
     apk del virtualbox-guest-additions virtualbox-guest-additions-openrc
     sed -i -e 's/v3\.15/edge/g' /etc/apk/repositories
     echo "https://sjc.edge.kernel.org/alpine/edge/testing" | tee -a /etc/apk/repositories
-    apk update
-    apk upgrade
+    apk -U upgrade
   SHELL
   config.vm.provision "ansible" do |ansible|
     ansible.groups = {
