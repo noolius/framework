@@ -1,141 +1,140 @@
-vars:
-  consul_k8s_version: 0.41.1
-  cilium_cli_version: v0.10.4
-  hubble_version: v0.9.0
-  cosign_version: v1.6.0
-  helm_version: v3.8.1
-  kapp_version: v0.46.0
-  crank_version: v1.6.4
-  thanos_cli_version: 0.25.1
-  kustomize_version: v4.5.2
-  cf_version: 8.2.0
-  certmanager_version: v1.7.1
-  kyverno_image_tag: v1.6.1
-  kyverno_branch: release-1.6
-  metallb_alloc_cidr: 192.168.133.99-192.168.133.240
-  metallb_version: 0.12.1
-  consul_version: 1.11.4
-  storageclass_manifest: |
-    apiVersion: storage.k8s.io/v1
-    kind: StorageClass
-    metadata:
-      name: local
-    provisioner: kubernetes.io/no-provisioner
-    volumeBindingMode: WaitForFirstConsumer
-  bash_profile: |
-    alias k='kubectl'
-    alias ns='kubens'
-    alias ctx='kubectx'
-  install_kyverno_kustomize: |
-    apiVersion: kustomize.config.k8s.io/v1beta1
-    kind: Kustomization
-    resources:
-      - install.yaml
-    transformers:
-      - annotations-kyverno.yaml
-  kyverno_transformation: |
-    apiVersion: builtin
-    kind: AnnotationsTransformer
-    metadata:
-      name: addAnnotationToNamespace
-    annotations:
-      linkerd.io/inject: enabled
-    fieldSpecs:
-    - kind: Namespace
-      path: metadata/annotations
-      create: true
-  persistentvolume1_manifest: |
-    apiVersion: v1
-    kind: PersistentVolume
-    metadata:
-      name: pv-1
-    spec:
-      capacity:
-        storage: 10Gi
-      volumeMode: Filesystem
-      accessModes:
-      - ReadWriteOnce
-      persistentVolumeReclaimPolicy: Delete
-      local:
-        path: /srv
-      nodeAffinity:
-        required:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-              - node2
-              - node3
-              - node4
-  persistentvolume2_manifest: |
-    apiVersion: v1
-    kind: PersistentVolume
-    metadata:
-      name: pv-2
-    spec:
-      capacity:
-        storage: 10Gi
-      volumeMode: Filesystem
-      accessModes:
-      - ReadWriteOnce
-      persistentVolumeReclaimPolicy: Delete
-      local:
-        path: /srv
-      nodeAffinity:
-        required:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-              - node2
-              - node3
-              - node4
-  persistentvolume3_manifest: |
-    apiVersion: v1
-    kind: PersistentVolume
-    metadata:
-      name: pv-3
-    spec:
-      capacity:
-        storage: 10Gi
-      volumeMode: Filesystem
-      accessModes:
-      - ReadWriteOnce
-      persistentVolumeReclaimPolicy: Delete
-      local:
-        path: /srv
-      nodeAffinity:
-        required:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-              - node2
-              - node3
-              - node4
-  configmap_yaml_metallb: |
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      namespace: metallb-system
-      name: config
-    data:
-      config: |
-        address-pools:
-        - name: default
-          protocol: layer2
-          addresses:
-          - {{ metallb_alloc_cidr | quote }}
-          avoid-buggy-ips: true
-  kustomization_yaml_metallb: |
+consul_k8s_version: 0.41.1
+cilium_cli_version: v0.10.4
+hubble_version: v0.9.0
+cosign_version: v1.6.0
+helm_version: v3.8.1
+kapp_version: v0.46.0
+crank_version: v1.6.4
+thanos_cli_version: 0.25.1
+kustomize_version: v4.5.2
+cf_version: 8.2.0
+certmanager_version: v1.7.1
+kyverno_image_tag: v1.6.1
+kyverno_branch: release-1.6
+metallb_alloc_cidr: 192.168.133.99-192.168.133.240
+metallb_version: 0.12.1
+consul_version: 1.11.4
+storageclass_manifest: |
+  apiVersion: storage.k8s.io/v1
+  kind: StorageClass
+  metadata:
+    name: local
+  provisioner: kubernetes.io/no-provisioner
+  volumeBindingMode: WaitForFirstConsumer
+bash_profile: |
+  alias k='kubectl'
+  alias ns='kubens'
+  alias ctx='kubectx'
+install_kyverno_kustomize: |
+  apiVersion: kustomize.config.k8s.io/v1beta1
+  kind: Kustomization
+  resources:
+    - install.yaml
+  transformers:
+    - annotations-kyverno.yaml
+kyverno_transformation: |
+  apiVersion: builtin
+  kind: AnnotationsTransformer
+  metadata:
+    name: addAnnotationToNamespace
+  annotations:
+    linkerd.io/inject: enabled
+  fieldSpecs:
+  - kind: Namespace
+    path: metadata/annotations
+    create: true
+persistentvolume1_manifest: |
+  apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: pv-1
+  spec:
+    capacity:
+      storage: 10Gi
+    volumeMode: Filesystem
+    accessModes:
+    - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Delete
+    local:
+      path: /srv
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - node2
+            - node3
+            - node4
+persistentvolume2_manifest: |
+  apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: pv-2
+  spec:
+    capacity:
+      storage: 10Gi
+    volumeMode: Filesystem
+    accessModes:
+    - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Delete
+    local:
+      path: /srv
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - node2
+            - node3
+            - node4
+persistentvolume3_manifest: |
+  apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: pv-3
+  spec:
+    capacity:
+      storage: 10Gi
+    volumeMode: Filesystem
+    accessModes:
+    - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Delete
+    local:
+      path: /srv
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - node2
+            - node3
+            - node4
+configmap_yaml_metallb: |
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
     namespace: metallb-system
-    resources:
-     - github.com/metallb/metallb//manifests?ref=v{{ metallb_version | quote }}
-     - configmap.yml
-  kyverno_prefix: /root/kyverno
-  metallb_prefix: /root/metallb
-  cilium_version: 1.11.2
-  pod_network_cidr: 10.188.0.0/16
+    name: config
+  data:
+    config: |
+      address-pools:
+      - name: default
+        protocol: layer2
+        addresses:
+        - {{ metallb_alloc_cidr | quote }}
+        avoid-buggy-ips: true
+kustomization_yaml_metallb: |
+  namespace: metallb-system
+  resources:
+   - github.com/metallb/metallb//manifests?ref=v{{ metallb_version | quote }}
+   - configmap.yml
+kyverno_prefix: /root/kyverno
+metallb_prefix: /root/metallb
+cilium_version: 1.11.2
+pod_network_cidr: 10.188.0.0/16

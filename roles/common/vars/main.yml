@@ -1,23 +1,22 @@
-vars:
-  apiserver: 192.168.133.10
-  k8s_serviceport: 6443
-  doas_d_conf: |
-    permit nopass keepenv setenv { PATH } root as root
-    permit nopass keepenv setenv { PATH } vagrant as root
-  more_modules: |
-    overlay
-    br_netfilter
-    wireguard
-  sysctl_tunables: |
-    net.ipv4.ip_forward = 1
-    net.bridge.bridge-nf-call-iptables = 1
-    net.bridge.bridge-nf-call-ip6tables = 1
-    net.netfilter.nf_conntrack_max = 1000000
-  mount_rshared_openrc: |
-    #!/sbin/openrc-run
-    name="mount_rshared"
-    command="/bin/mount"
-    command_args="--make-rshared /"
-    depend() {
-      before kubelet
-    }
+apiserver: 192.168.133.10
+k8s_serviceport: 6443
+doas_d_conf: |
+  permit nopass keepenv setenv { PATH } root as root
+  permit nopass keepenv setenv { PATH } vagrant as root
+more_modules: |
+  overlay
+  br_netfilter
+  wireguard
+sysctl_tunables: |
+  net.ipv4.ip_forward = 1
+  net.bridge.bridge-nf-call-iptables = 1
+  net.bridge.bridge-nf-call-ip6tables = 1
+  net.netfilter.nf_conntrack_max = 1000000
+mount_rshared_openrc: |
+  #!/sbin/openrc-run
+  name="mount_rshared"
+  command="/bin/mount"
+  command_args="--make-rshared /"
+  depend() {
+    before kubelet
+  }
