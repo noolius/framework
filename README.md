@@ -36,7 +36,7 @@ v=/usr/bin/vagrant
 
 In ``Vagrantfile``, adjust the host-only ``private_network`` /24 CIDR as necessary. As of VirtualBox 6.1.30, also [add this CIDR to /etc/vbox/networks.conf](https://www.virtualbox.org/manual/ch06.html#network_hostonly).
 
-If you change it, also note (or modify) ``apiserver`` in ``playbook2.yml``.
+If you change it, modify ``apiserver`` in ``roles/common/vars/main.yml`` and ``metallb_alloc_cidr`` in ``roles/control_planes/vars/main.yml`` appropriately.
 
 ## Moar fast!
 
