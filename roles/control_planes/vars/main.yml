@@ -4,7 +4,7 @@ hubble_version: v0.9.0
 cosign_version: v1.6.0
 helm_version: v3.8.1
 kapp_version: v0.46.0
-crank_version: v1.6.4
+crank_version: v1.7.0
 thanos_cli_version: 0.25.1
 kustomize_version: v4.5.2
 cf_version: 8.2.0

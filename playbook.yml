@@ -74,7 +74,7 @@
         owner: root
         group: root
         mode: '0555'
-        checksum: sha256:0130e077172d66f5470de9e507ecd2b0c2dc2d46aea0ad8e1996852752a1808b
+        checksum: sha256:6c91e5568100cd9475e6a4324c785de21a925f897c3a07b3d6165214444be9de
     - name: Downloading Cilium cli
       ansible.builtin.get_url:
         url: https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version | quote }}/cilium-linux-amd64.tar.gz
