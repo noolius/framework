@@ -158,7 +158,7 @@
         owner: root
         group: root
         mode: '0400'
-        checksum: sha256:f5a2741db8f5f5db4ab7ad041561b4c541a1ae35923053deadb0afb0e8c16cef
+        checksum: sha256:2f4dc186a7ac318064bac9de713c7f74ddb2f41853415d3caa72c28b86aaa3de
     - name: Installing kubectl cert-manager
       ansible.builtin.unarchive:
         src: /root/kubectl-cert_manager-linux-amd64.tar.gz
