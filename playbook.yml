@@ -109,7 +109,7 @@
           quote }}/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
         dest: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
         mode: '0400'
-        checksum: sha256:3d1fa7e5c3ab0262bb9b41bb99ee245673741171aaef5b99da438e1f0444671c
+        checksum: sha256:ff7e31684c5a8690661ddf5c1628ff728d034f404bdfd735f7b6d2890b4dd98c
     - name: Extracting Thanos cli
       ansible.builtin.unarchive:
         src: /root/thanos-{{ thanos_cli_version | quote }}.linux-amd64.tar.gz
