@@ -6,7 +6,7 @@ helm_version: v3.8.1
 kapp_version: v0.46.0
 crank_version: v1.7.0
 thanos_cli_version: 0.25.2
-kustomize_version: v4.5.2
+kustomize_version: v4.5.4
 cf_version: 8.2.0
 certmanager_version: v1.7.1
 kyverno_image_tag: v1.6.2-rc2

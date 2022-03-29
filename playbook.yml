@@ -177,7 +177,7 @@
         owner: root
         group: root
         mode: '0400'
-        checksum: sha256:c4215332da8da16ddeb88e218d8dceb76c85b366a5c58d012bc5ece904bf2fd0
+        checksum: sha256:1159c5c17c964257123b10e7d8864e9fe7f9a580d4124a388e746e4003added3
     - name: Installing Kustomize
       ansible.builtin.unarchive:
         src: /root/kustomize_{{ kustomize_version | quote }}_linux_amd64.tar.gz
