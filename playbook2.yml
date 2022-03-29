@@ -275,7 +275,7 @@
         owner: root
         group: root
         mode: '0400'
-        checksum: sha256:89e06c4a0c2a0378b03abc0596e51ad61b59ba81a645be866f5120531816813d
+        checksum: sha256:9ee0741a332c7cacd9ccffc335f96e2b6431173b17e0e365c61bfe2831e0f999
       register: downloaded_kyverno_cli
     - name: Installing Kyverno cli
       ansible.builtin.unarchive:
@@ -296,7 +296,7 @@
         owner: root
         group: root
         mode: '0400'
-        checksum: sha256:07da324b502156801791024512130dbfd53bc4edebc5397fd3ab0bf1af5ed920
+        checksum: sha256:f9343a128a45ff2983262002106a6f6435eb8300ff05547e4359a0943ef69dc9
       register: download_kyverno_installation_yaml
     - name: Copying Kyverno Kustomization
       ansible.builtin.copy:

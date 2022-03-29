@@ -9,7 +9,7 @@ thanos_cli_version: 0.25.2
 kustomize_version: v4.5.2
 cf_version: 8.2.0
 certmanager_version: v1.7.1
-kyverno_image_tag: v1.6.1
+kyverno_image_tag: v1.6.2-rc2
 kyverno_branch: release-1.6
 metallb_alloc_cidr: 192.168.133.99-192.168.133.240
 metallb_version: 0.12.1
