@@ -58,7 +58,7 @@
         owner: root
         group: root
         mode: '0400'
-        checksum: sha256:0c59cb11bed051e57dbeabac557bc40714bb74a907786f19fb15f88027d2c6ef
+        checksum: sha256:33bcff021fad56b49c2ae51336eedcf0098d2319b2eca55e18da2b1968b5a8dd
     - name: Installing consul-k8s cli
       ansible.builtin.unarchive:
         src: /root/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
