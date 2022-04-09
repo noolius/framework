@@ -11,6 +11,7 @@
         name:
           - unzip
           - kubectx
+          - step-cli
         state: latest
     - name: Downloading cosign
       ansible.builtin.get_url:
@@ -50,23 +51,6 @@
         group: root
         mode: '0555'
         checksum: sha256:130f648cd921761b61bb03d7a0f535d1eea26e0b5fc60e2839af73f4ea98e22f
-    - name: Downloading consul-k8s cli
-      ansible.builtin.get_url:
-        url: https://releases.hashicorp.com/consul-k8s/{{ consul_k8s_version |
-          quote }}/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
-        dest: /root/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
-        owner: root
-        group: root
-        mode: '0400'
-        checksum: sha256:33bcff021fad56b49c2ae51336eedcf0098d2319b2eca55e18da2b1968b5a8dd
-    - name: Installing consul-k8s cli
-      ansible.builtin.unarchive:
-        src: /root/consul-k8s_{{ consul_k8s_version | quote }}_linux_amd64.zip
-        dest: /usr/local/bin
-        owner: root
-        group: root
-        mode: '0555'
-        remote_src: true
     - name: Downloading and installing Crossplane cli
       ansible.builtin.get_url:
         url: https://releases.crossplane.io/stable/{{ crank_version | quote }}/bin/linux_amd64/crank
@@ -188,6 +172,15 @@
         remote_src: true
         extra_opts:
           - kustomize
+    - name: Downloading Linkerd2 cli
+      ansible.builtin.get_url:
+        url: https://github.com/linkerd/linkerd2/releases/download/{{ linkerd2_version |
+          quote }}/linkerd2-cli-{{ linkerd2_version | quote }}-linux-amd64
+        dest: /usr/local/bin/linkerd
+        owner: root
+        group: root
+        mode: '0555'
+        checksum: sha256:4b46e3c5929345ebdac56058cab9c8d8fcd5f0e16fe076777391a95c3826a6f9
 - name: Provisioning Alpine edge K8s (all)
   hosts: "*"
   roles:
