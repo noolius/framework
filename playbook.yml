@@ -180,7 +180,7 @@
         owner: root
         group: root
         mode: '0555'
-        checksum: sha256:4b46e3c5929345ebdac56058cab9c8d8fcd5f0e16fe076777391a95c3826a6f9
+        checksum: sha256:b70da568d4f464142eae0bd232e6a489f342a90c1cda8eb523d70afc128ba99a
 - name: Provisioning Alpine edge K8s (all)
   hosts: "*"
   roles:
