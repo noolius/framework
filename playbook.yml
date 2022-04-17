@@ -6,12 +6,10 @@
     - control_planes
   become: true
   tasks:
-    - name: Adding packages from release repo
+    - name: Adding bootstrap packages for control-planes
       community.general.apk:
         name:
           - unzip
-          - kubectx
-          - step-cli
         state: latest
     - name: Downloading cosign
       ansible.builtin.get_url:
@@ -298,6 +296,8 @@
           - git
           - yajl
           - coreutils
+          - kubectx
+          - step-cli
         state: latest
     - name: Checking whether to copy stern
       ansible.builtin.stat:
