@@ -7,6 +7,11 @@ Vagrant.configure("2") do |config|
     config.vm.define "node#{machine_id}" do |machine|
        machine.vm.hostname = "node#{machine_id}"
        machine.vm.network "private_network", ip: "192.168.133.#{machine_id}0"
+       if "1" == "#{machine_id}"
+         machine.vm.box = "alpine315-edge-control-plane"
+       else
+         machine.vm.box = "alpine315-edge-common"
+       end
     end
   end
 
@@ -14,11 +19,6 @@ Vagrant.configure("2") do |config|
   ##
   ## ---> Uses the following plugins: reload, sshfs
   ##
-  if config.vm.hostname == "node1"
-    config.vm.box = "alpine315-edge-control-plane"
-  else
-    config.vm.box = "alpine315-edge-common"
-  end
   config.vm.synced_folder ".", "/vagrant", type: "sshfs"
   config.vm.box_check_update = false
   config.vm.provider "virtualbox" do |vb|
