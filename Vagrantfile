@@ -14,7 +14,11 @@ Vagrant.configure("2") do |config|
   ##
   ## ---> Uses the following plugins: reload, sshfs
   ##
-  config.vm.box = "roboxes/alpine315"
+  if config.vm.hostname == "node1"
+    config.vm.box = "alpine315-edge-control-plane"
+  else
+    config.vm.box = "alpine315-edge-common"
+  end
   config.vm.synced_folder ".", "/vagrant", type: "sshfs"
   config.vm.box_check_update = false
   config.vm.provider "virtualbox" do |vb|
@@ -24,13 +28,6 @@ Vagrant.configure("2") do |config|
   end
 
   # Provisioning
-  config.vm.provision "shell", inline: <<-SHELL
-    apk -U add python2 tar gzip bzip2
-    apk del virtualbox-guest-additions virtualbox-guest-additions-openrc
-    sed -i -e 's/v3\.15/edge/g' /etc/apk/repositories
-    echo "https://sjc.edge.kernel.org/alpine/edge/testing" | tee -a /etc/apk/repositories
-    apk -U upgrade
-  SHELL
   config.vm.provision "ansible" do |ansible|
     ansible.groups = {
 	"control_planes" => ["node1"],
