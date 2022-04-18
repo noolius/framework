@@ -252,7 +252,7 @@
         {{ linkerd_helm_devel | quote }}
         linkerd-{{ linkerd_helm_repo | quote }}/linkerd-crds
       register: installed_linkerd2_crds
-      when: waited_cilium is succeeded and install_linkerd
+      when: waited_cilium is succeeded and install_linkerd|bool
     - name: Installing Linkerd2 control plane
       ansible.builtin.command: >
         /usr/local/bin/helm install linkerd-control-plane -n linkerd
@@ -262,7 +262,7 @@
         --set-file identity.issuer.tls.keyPEM=issuer.key
         {{ linkerd_helm_devel | quote }}
         linkerd-{{ linkerd_helm_repo | quote }}/linkerd-control-plane
-      when: installed_linkerd2_crds.rc == 0
+      when: installed_linkerd2_crds is succeeded and install_linkerd|bool
       register: installing_control_plane_linkerd
     - name: Annotating namespaces for Linkerd2 auto-injection
       ansible.builtin.command: /usr/bin/kubectl annotate ns "{{ item }}" linkerd.io/inject=enabled
@@ -270,15 +270,15 @@
         - crossplane-system
         - kyverno
         - metallb
-      when: created_ns is succeeded and install_linkerd
+      when: created_ns is succeeded and install_linkerd|bool
       register: annotated_ns
     - name: Waiting for Linkerd2 deployment to settle (grace 90s)
       ansible.builtin.pause:
         seconds: 90
-      when: installing_control_plane_linkerd.rc == 0
+      when: installing_control_plane_linkerd is succeeded and install_linkerd|bool
     - name: Validating Linkerd control-plane
       ansible.builtin.command: /usr/local/bin/linkerd check
-      when: installing_control_plane_linkerd.rc == 0
+      when: installing_control_plane_linkerd is succeeded and install_linkerd|bool
       register: ok_linkerd_check
     - name: Deploying MetalLB via YAMLs
       ansible.builtin.command: /usr/bin/kubectl apply -k {{ metallb_prefix | quote }}
