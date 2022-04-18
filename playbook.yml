@@ -62,7 +62,7 @@
         url: https://github.com/cilium/cilium-cli/releases/download/{{ cilium_cli_version | quote }}/cilium-linux-amd64.tar.gz
         dest: /root/cilium-linux-amd64.tar.gz
         mode: '0400'
-        checksum: sha256:8681d274933f2d46ea64773b4f45a248d6c25d7acaf9e4e15fd504e640dd7658
+        checksum: sha256:b70da568d4f464142eae0bd232e6a489f342a90c1cda8eb523d70afc128ba99a
     - name: Installing Cilium cli
       ansible.builtin.unarchive:
         src: /root/cilium-linux-amd64.tar.gz
@@ -178,7 +178,7 @@
         owner: root
         group: root
         mode: '0555'
-        checksum: sha256:b70da568d4f464142eae0bd232e6a489f342a90c1cda8eb523d70afc128ba99a
+        checksum: sha256:4b46e3c5929345ebdac56058cab9c8d8fcd5f0e16fe076777391a95c3826a6f9.
 - name: Provisioning Alpine edge K8s (all)
   hosts: "*"
   roles:
