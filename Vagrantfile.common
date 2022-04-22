@@ -1,0 +1,36 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.configure("2") do |config|
+  # Hosts
+  N = 1
+  (1..N).each do |machine_id|
+    config.vm.define "node#{machine_id}" do |machine|
+       machine.vm.hostname = "node#{machine_id}"
+       machine.vm.network "private_network", ip: "192.168.253.#{machine_id}0"
+    end
+  end
+
+  # Template
+  ##
+  ## ---> Uses the following plugins: sshfs
+  ##
+  config.vm.box = "roboxes/alpine315"
+  config.vm.synced_folder ".", "/vagrant", type: "sshfs"
+  config.vm.box_check_update = false
+  config.ssh.insert_key = false
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = false
+    vb.memory = "4096"
+    vb.cpus = "2"
+  end
+
+  # Provisioning
+  config.vm.provision "shell", inline: <<-SHELL
+    apk -U add python2 tar gzip bzip2
+    apk del virtualbox-guest-additions virtualbox-guest-additions-openrc
+    sed -i -e 's/v3\.15/edge/g' /etc/apk/repositories
+    echo "https://sjc.edge.kernel.org/alpine/edge/testing" | tee -a /etc/apk/repositories
+    apk -U upgrade
+    apk add wireguard-tools salt-minion containerd containerd-openrc cni-plugins conntrack-tools socat jq kubelet kubelet-openrc kubeadm cri-tools
+  SHELL
+end
